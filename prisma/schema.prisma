@@ -195,10 +195,13 @@ model Verification {
     userId String
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    documentType String
-    documentUrl  String
+    documentType String // "PHOTO", "ID", "PHONE"
+    documentUrl  String // Profile photo URL or document URL
+    selfieUrl    String? // Verification selfie URL (for photo verification)
     status       VerificationStatus @default(PENDING)
-    notes        String?
+    notes        String? // Admin notes or rejection reason
+    reviewedBy   String? // Admin user ID who reviewed
+    reviewedAt   DateTime? // Timestamp of review
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

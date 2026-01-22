@@ -270,13 +270,13 @@ export default function DiscoverPage() {
                 {/* Profile Grid */}
                 <div className="space-y-8">
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
                             {[...Array(8)].map((_, i) => (
-                                <div key={i} className="aspect-[3/4] rounded-3xl bg-white animate-pulse border border-slate-100 shadow-sm" />
+                                <div key={i} className="aspect-[4/5] sm:aspect-[3/4] rounded-2xl sm:rounded-3xl bg-white animate-pulse border border-slate-100 shadow-sm" />
                             ))}
                         </div>
                     ) : profiles.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
                             {profiles.map((sp: any, idx) => (
                                 <UserCard
                                     key={sp.profile.id}
@@ -332,8 +332,9 @@ export default function DiscoverPage() {
                             <ChevronRight size={20} />
                         </button>
                     </motion.div>
-                )}
-            </main>
-        </div>
+                )
+                }
+            </main >
+        </div >
     );
 }

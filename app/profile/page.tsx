@@ -84,6 +84,15 @@ export default function ProfilePage() {
     const [verificationDocs, setVerificationDocs] = useState<VerificationDoc[]>([]);
     const [selectedVerifyFile, setSelectedVerifyFile] = useState<File | null>(null);
 
+    // Verification state
+    const [userVerification, setUserVerification] = useState<{
+        emailVerified: string | null;
+        phoneVerified: boolean;
+        photoVerified: boolean;
+        idVerified: boolean;
+        trustScore: number;
+    }>({ emailVerified: null, phoneVerified: false, photoVerified: false, idVerified: false, trustScore: 0 });
+
     useEffect(() => {
         if (status === 'unauthenticated') {
             router.push('/auth/login');
@@ -117,6 +126,12 @@ export default function ProfilePage() {
             const data = await res.json();
             if (data.documents) {
                 setVerificationDocs(data.documents);
+            }
+            // Fetch user verification status
+            const userRes = await fetch('/api/user/verification-status');
+            const userData = await userRes.json();
+            if (userData.success) {
+                setUserVerification(userData.verification);
             }
         } catch (error) {
             console.error('Error fetching verification docs:', error);
@@ -884,97 +899,449 @@ export default function ProfilePage() {
         );
     };
 
-    const renderVerificationContent = () => (
-        <div className="space-y-8">
-            <section className="bg-white/70 backdrop-blur-sm rounded-[2.5rem] border border-white shadow-2xl shadow-slate-200/50 p-10 space-y-10 transition-all hover:shadow-rose-100/20">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                        <ShieldCheck className="text-rose-500" size={24} />
-                        <h3 className="font-serif text-2xl text-slate-900 font-bold">Identity Verification</h3>
+    const calculateTrustScore = () => {
+        let score = 0;
+        if (userVerification.emailVerified) score += 20;
+        if (userVerification.phoneVerified) score += 25;
+        if (userVerification.photoVerified) score += 30;
+        if (userVerification.idVerified) score += 25;
+        return score;
+    };
+
+    const getTrustTier = (score: number) => {
+        if (score >= 76) return { name: 'Premium Trust', color: 'from-amber-500 to-orange-500', icon: '💎', badge: 'Gold' };
+        if (score >= 51) return { name: 'High Trust', color: 'from-emerald-500 to-teal-500', icon: '🟢', badge: 'Silver' };
+        if (score >= 26) return { name: 'Medium Trust', color: 'from-amber-500 to-yellow-500', icon: '🟡', badge: 'Bronze' };
+        return { name: 'Low Trust', color: 'from-slate-400 to-slate-500', icon: '🔴', badge: 'None' };
+    };
+
+    const renderVerificationContent = () => {
+        const trustScore = calculateTrustScore();
+        const tier = getTrustTier(trustScore);
+
+        return (
+            <div className="space-y-8">
+                {/* Trust Score Header */}
+                <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2.5rem] p-10 text-white space-y-8 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl -mr-48 -mt-48" />
+
+                    <div className="relative z-10 space-y-6">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="text-rose-500" size={28} />
+                                    <h2 className="font-serif text-3xl font-bold">Trust Score</h2>
+                                </div>
+                                <p className="text-white/60 text-sm max-w-md">Build trust with the community by verifying your identity. Higher scores unlock premium features.</p>
+                            </div>
+
+                            {/* Trust Score Circle */}
+                            <div className="relative">
+                                <div className="w-32 h-32 relative">
+                                    <svg className="w-32 h-32 transform -rotate-90">
+                                        <circle
+                                            cx="64" cy="64" r="56"
+                                            stroke="rgba(255,255,255,0.1)"
+                                            strokeWidth="8"
+                                            fill="transparent"
+                                        />
+                                        <circle
+                                            cx="64" cy="64" r="56"
+                                            stroke="url(#gradient)"
+                                            strokeWidth="8"
+                                            fill="transparent"
+                                            strokeDasharray={352}
+                                            strokeDashoffset={352 - (352 * trustScore) / 100}
+                                            strokeLinecap="round"
+                                            className="transition-all duration-1000"
+                                        />
+                                        <defs>
+                                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#f43f5e" />
+                                                <stop offset="100%" stopColor="#fb923c" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span className="text-4xl font-bold">{trustScore}</span>
+                                        <span className="text-xs text-white/60 font-medium">/ 100</span>
+                                    </div>
+                                </div>
+                                <div className={`mt-3 px-4 py-2 bg-gradient-to-r ${tier.color} rounded-xl text-center`}>
+                                    <p className="text-xs font-bold uppercase tracking-wider">{tier.icon} {tier.name}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Progress Breakdown */}
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-white/60">Email</span>
+                                    <span className="text-lg font-bold">{userVerification.emailVerified ? '20' : '0'}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full bg-gradient-to-r from-rose-500 to-orange-500 rounded-full transition-all duration-500 ${userVerification.emailVerified ? 'w-full' : 'w-0'}`} />
+                                </div>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-white/60">Phone</span>
+                                    <span className="text-lg font-bold">{userVerification.phoneVerified ? '25' : '0'}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full bg-gradient-to-r from-rose-500 to-orange-500 rounded-full transition-all duration-500 ${userVerification.phoneVerified ? 'w-full' : 'w-0'}`} />
+                                </div>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-white/60">Photo</span>
+                                    <span className="text-lg font-bold">{userVerification.photoVerified ? '30' : '0'}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full bg-gradient-to-r from-rose-500 to-orange-500 rounded-full transition-all duration-500 ${userVerification.photoVerified ? 'w-full' : 'w-0'}`} />
+                                </div>
+                            </div>
+                            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-white/60">ID</span>
+                                    <span className="text-lg font-bold">{userVerification.idVerified ? '25' : '0'}</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full bg-gradient-to-r from-rose-500 to-orange-500 rounded-full transition-all duration-500 ${userVerification.idVerified ? 'w-full' : 'w-0'}`} />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p className="text-sm text-slate-400">Verify your profile to build trust and get the Verified badge.</p>
-                </div>
+                </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <form onSubmit={handleVerifySubmit} className="space-y-6">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Document Type</label>
-                            <select name="type" className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl p-3.5 outline-none focus:border-rose-500 transition-all">
-                                <option value="ID_CARD">National ID</option>
-                                <option value="PASSPORT">Passport</option>
-                                <option value="DRIVING_LICENSE">License</option>
-                            </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Upload Document</label>
-                            <label className="w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-rose-300 hover:bg-rose-50 transition-all">
-                                {selectedVerifyFile ? (
-                                    <>
-                                        <ImageIcon size={24} className="text-rose-500" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-900 truncate max-w-[200px]">
-                                            {selectedVerifyFile.name}
-                                        </span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <UploadCloud size={24} className="text-slate-400" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Select File</span>
-                                    </>
-                                )}
-                                <input
-                                    type="file"
-                                    name="file"
-                                    className="hidden"
-                                    required
-                                    onChange={(e) => setSelectedVerifyFile(e.target.files?.[0] || null)}
-                                />
-                            </label>
-                        </div>
-
-                        <button
-                            disabled={submitting}
-                            className="w-full py-4 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-rose-600 transition-all shadow-md flex items-center justify-center gap-2"
-                        >
-                            {submitting ? <Loader2 className="animate-spin" size={16} /> : <Fingerprint size={16} />}
-                            {submitting ? 'Submitting...' : 'Submit for Verification'}
-                        </button>
-                    </form>
-
-                    <div className="space-y-4">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Previous Submissions</label>
-                        <div className="space-y-3">
-                            {verificationDocs.length === 0 ? (
-                                <div className="p-8 border border-dashed border-slate-200 rounded-2xl text-center space-y-2">
-                                    <ScrollText className="text-slate-200 mx-auto" size={32} />
-                                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">No documents found</p>
+                {/* Verification Methods */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Email Verification */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white shadow-xl p-8 space-y-6">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center">
+                                        <Sparkles className="text-blue-600" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-serif text-xl font-bold text-slate-900">Email Verification</h3>
+                                        <p className="text-xs text-slate-400">+20 points</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {userVerification.emailVerified ? (
+                                <div className="px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">✓ Verified</span>
                                 </div>
                             ) : (
-                                verificationDocs.map((doc) => (
-                                    <div key={doc.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                                                <ScrollText className="text-rose-500" size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-900">{doc.type}</p>
-                                                <p className="text-[10px] text-slate-400">{new Date(doc.createdAt).toLocaleDateString()}</p>
-                                            </div>
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                            doc.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
-                                            }`}>
-                                            {doc.status}
-                                        </span>
-                                    </div>
-                                ))
+                                <div className="px-3 py-1.5 bg-amber-50 rounded-xl border border-amber-200">
+                                    <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">⚠ Pending</span>
+                                </div>
                             )}
                         </div>
+
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                            Confirm your email address to ensure account security and receive important notifications.
+                        </p>
+
+                        {userVerification.emailVerified ? (
+                            <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                                <p className="text-xs text-emerald-700 font-medium">Verified on {new Date(userVerification.emailVerified).toLocaleDateString()}</p>
+                            </div>
+                        ) : (
+                            <button className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-500/20">
+                                Verify Email
+                            </button>
+                        )}
                     </div>
-                </div>
-            </section>
-        </div>
-    );
+
+                    {/* Phone Verification */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white shadow-xl p-8 space-y-6">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center">
+                                        <Zap className="text-purple-600" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-serif text-xl font-bold text-slate-900">Phone Verification</h3>
+                                        <p className="text-xs text-slate-400">+25 points</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {userVerification.phoneVerified ? (
+                                <div className="px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">✓ Verified</span>
+                                </div>
+                            ) : (
+                                <div className="px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200">
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Not Started</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                            Verify your phone number via SMS OTP for an additional layer of security.
+                        </p>
+
+                        <button
+                            disabled={!userVerification.phoneVerified}
+                            className="w-full py-3.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {userVerification.phoneVerified ? 'Verified' : 'Coming Soon'}
+                        </button>
+                    </div>
+
+                    {/* Photo Verification */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white shadow-xl p-8 space-y-6">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center">
+                                        <Camera className="text-rose-600" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-serif text-xl font-bold text-slate-900">Photo Verification</h3>
+                                        <p className="text-xs text-slate-400">+30 points</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {userVerification.photoVerified ? (
+                                <div className="px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">✓ Verified</span>
+                                </div>
+                            ) : (
+                                <div className="px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200">
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Not Started</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                            Verify that your profile photo matches your identity through live selfie capture.
+                        </p>
+
+                        <button
+                            disabled={!userVerification.photoVerified}
+                            className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {userVerification.photoVerified ? 'Verified' : 'Coming Soon'}
+                        </button>
+                    </div>
+
+                    {/* ID Verification */}
+                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white shadow-xl p-8 space-y-6">
+                        <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center">
+                                        <Fingerprint className="text-amber-600" size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-serif text-xl font-bold text-slate-900">ID Verification</h3>
+                                        <p className="text-xs text-slate-400">+25 points</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {userVerification.idVerified ? (
+                                <div className="px-3 py-1.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">✓ Verified</span>
+                                </div>
+                            ) : (
+                                <div className="px-3 py-1.5 bg-slate-100 rounded-xl border border-slate-200">
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Not Started</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                            Upload a government-issued ID (NIC, Passport, or Driving License) for highest trust level.
+                        </p>
+
+                        <button
+                            onClick={() => setShowVerificationModal(true)}
+                            className="w-full py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20"
+                        >
+                            {userVerification.idVerified ? 'View Status' : 'Upload Document'}
+                        </button>
+                    </div>
+                </section>
+
+                {/* Benefits Section */}
+                <section className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl border border-rose-100 p-10 space-y-6">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Crown className="text-rose-600" size={24} />
+                            <h3 className="font-serif text-2xl font-bold text-slate-900">Benefits of Higher Trust Score</h3>
+                        </div>
+                        <p className="text-sm text-slate-600">Unlock premium features as you increase your trust score</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <BadgeCheck className="text-white" size={18} />
+                            </div>
+                            <div>
+                                <p className="font-bold text-slate-900 text-sm">Verified Badge</p>
+                                <p className="text-xs text-slate-600">Display trust badge on your profile</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Eye className="text-white" size={18} />
+                            </div>
+                            <div>
+                                <p className="font-bold text-slate-900 text-sm">Increased Visibility</p>
+                                <p className="text-xs text-slate-600">Featured in search results</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Users className="text-white" size={18} />
+                            </div>
+                            <div>
+                                <p className="font-bold text-slate-900 text-sm">More Matches</p>
+                                <p className="text-xs text-slate-600">Higher priority in recommendations</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-rose-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Heart className="text-white" size={18} />
+                            </div>
+                            <div>
+                                <p className="font-bold text-slate-900 text-sm">Unlimited Proposals</p>
+                                <p className="text-xs text-slate-600">Send unlimited interest requests</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* ID Upload Modal */}
+                <AnimatePresence>
+                    {showVerificationModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowVerificationModal(false)}
+                                className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                            />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="relative bg-white w-full max-w-2xl rounded-3xl p-10 shadow-2xl space-y-8 overflow-hidden border border-slate-100"
+                            >
+                                <button
+                                    onClick={() => setShowVerificationModal(false)}
+                                    className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    <X size={24} />
+                                </button>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center">
+                                            <Fingerprint className="text-amber-600" size={28} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-serif text-slate-900 font-bold">ID Verification</h3>
+                                            <p className="text-sm text-slate-400">Upload your government-issued ID</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form onSubmit={handleVerifySubmit} className="space-y-6">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Document Type</label>
+                                        <select name="type" className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl p-3.5 outline-none focus:border-rose-500 transition-all">
+                                            <option value="ID_CARD">National ID Card (NIC)</option>
+                                            <option value="PASSPORT">Passport</option>
+                                            <option value="DRIVING_LICENSE">Driving License</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Upload Document</label>
+                                        <label className="w-full h-40 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-rose-300 hover:bg-rose-50 transition-all">
+                                            {selectedVerifyFile ? (
+                                                <>
+                                                    <ImageIcon size={32} className="text-rose-500" />
+                                                    <span className="text-sm font-bold text-slate-900 truncate max-w-[300px] px-4">
+                                                        {selectedVerifyFile.name}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <UploadCloud size={32} className="text-slate-400" />
+                                                    <span className="text-sm font-bold text-slate-400">Click to select file</span>
+                                                    <span className="text-xs text-slate-400">PNG, JPG or PDF (max 5MB)</span>
+                                                </>
+                                            )}
+                                            <input
+                                                type="file"
+                                                name="file"
+                                                className="hidden"
+                                                required
+                                                accept="image/*,application/pdf"
+                                                onChange={(e) => setSelectedVerifyFile(e.target.files?.[0] || null)}
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                                        <p className="text-xs text-blue-700 font-medium leading-relaxed">
+                                            <strong>Privacy Notice:</strong> Your documents are encrypted and stored securely. They will only be reviewed by our verification team and never shared publicly.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        disabled={submitting}
+                                        className="w-full py-4 bg-slate-900 text-white rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {submitting ? <Loader2 className="animate-spin" size={18} /> : <Fingerprint size={18} />}
+                                        {submitting ? 'Submitting...' : 'Submit for Verification'}
+                                    </button>
+                                </form>
+
+                                {/* Previous Submissions */}
+                                {verificationDocs.length > 0 && (
+                                    <div className="space-y-4 pt-6 border-t border-slate-100">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Previous Submissions</label>
+                                        <div className="space-y-3 max-h-48 overflow-y-auto">
+                                            {verificationDocs.map((doc) => (
+                                                <div key={doc.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                                                            <ScrollText className="text-rose-500" size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-xs font-bold text-slate-900">{doc.type.replace('_', ' ')}</p>
+                                                            <p className="text-[10px] text-slate-400">{new Date(doc.createdAt).toLocaleDateString()}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
+                                                            doc.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+                                                        }`}>
+                                                        {doc.status}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        );
+    };
 
     const renderViewContent = () => {
         if (!profile) return null;

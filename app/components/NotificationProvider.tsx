@@ -70,40 +70,70 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
     }, [session]);
 
-    // Real-time notifications via SSE
+    // Real-time notifications via SSE with reconnection logic
     useEffect(() => {
         if (!session?.user) return;
 
-        const eventSource = new EventSource('/api/notifications/stream');
+        let eventSource: EventSource | null = null;
+        let retryCount = 0;
+        let retryTimeout: NodeJS.Timeout;
 
-        eventSource.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+        const connect = () => {
+            if (eventSource) eventSource.close();
 
-            if (data.type === 'CONNECTED') {
-                console.log('Real-time notifications connected');
-                return;
-            }
+            console.log(`Connecting to notification stream (attempt ${retryCount + 1})...`);
+            eventSource = new EventSource('/api/notifications/stream');
 
-            // New notification received
-            setNotifications(prev => [data, ...prev].slice(0, 50));
-            setUnreadCount(prev => prev + 1);
+            eventSource.onopen = () => {
+                console.log('Real-time notifications stream opened');
+                retryCount = 0; // Reset retry count on successful connection
+            };
 
-            // Trigger browser notification if supported
-            if (Notification.permission === 'granted') {
-                new Notification(data.title, {
-                    body: data.message,
-                    icon: '/favicon.ico' // Ensure valid icon path
-                });
-            }
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'CONNECTED') {
+                        console.log('Real-time notifications connected');
+                        return;
+                    }
+
+                    // New notification received
+                    setNotifications(prev => [data, ...prev].slice(0, 50));
+                    setUnreadCount(prev => prev + 1);
+
+                    // Trigger browser notification if supported
+                    if (Notification.permission === 'granted') {
+                        new Notification(data.title, {
+                            body: data.message,
+                            icon: '/favicon.ico'
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error parsing SSE message:', e);
+                }
+            };
+
+            eventSource.onerror = (error) => {
+                console.error('SSE Connection Error:', error);
+                if (eventSource) eventSource.close();
+
+                // Exponential backoff reconnection
+                const nextRetryDelay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+                console.log(`Reconnecting in ${nextRetryDelay}ms...`);
+
+                retryTimeout = setTimeout(() => {
+                    retryCount++;
+                    connect();
+                }, nextRetryDelay);
+            };
         };
 
-        eventSource.onerror = (error) => {
-            console.error('SSE Error:', error);
-            eventSource.close();
-        };
+        connect();
 
         return () => {
-            eventSource.close();
+            if (eventSource) eventSource.close();
+            if (retryTimeout) clearTimeout(retryTimeout);
         };
     }, [session]);
 

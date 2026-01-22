@@ -14,7 +14,15 @@ export async function GET(request: Request) {
         const repo = new ProfileRepositoryPrisma();
         const profile = await repo.findByUserId(session.userId);
 
-        return NextResponse.json({ success: true, profile });
+        return NextResponse.json({
+            success: true,
+            profile: profile?.toJSON(),
+            user: {
+                id: session.userId,
+                email: session.email,
+                role: session.role
+            }
+        });
     } catch (error: any) {
         return NextResponse.json(
             { error: error.message || 'Internal Server Error' },
@@ -37,10 +45,11 @@ export async function POST(request: Request) {
 
         const profile = await useCase.execute({
             userId: session.userId,
+            name: session.name,
             ...body
         });
 
-        return NextResponse.json({ success: true, profile });
+        return NextResponse.json({ success: true, profile: profile.toJSON() });
     } catch (error: any) {
         return NextResponse.json(
             { error: error.message || 'Internal Server Error' },

@@ -12,7 +12,19 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
 
     useEffect(() => {
         const checkProfile = async () => {
+            // Exempt admin routes from profile check
+            if (pathname?.startsWith('/admin')) {
+                setHasChecked(true);
+                return;
+            }
+
             // Only check if authenticated and not on public/profile pages
+            // Also bypass for ADMIN role
+            if (status === 'authenticated' && (session?.user as any)?.role === 'ADMIN') {
+                setHasChecked(true);
+                return;
+            }
+
             if (status === 'authenticated' && pathname !== '/' && pathname !== '/profile') {
                 try {
                     const res = await fetch('/api/profile');
@@ -34,7 +46,7 @@ export default function ProfileGuard({ children }: { children: React.ReactNode }
         }
     }, [status, pathname, router]);
 
-    if (status === 'loading' || (!hasChecked && status === 'authenticated' && pathname !== '/' && pathname !== '/profile')) {
+    if (status === 'loading' || (!hasChecked && status === 'authenticated' && pathname !== '/' && pathname !== '/profile' && !pathname?.startsWith('/admin'))) {
         return null; // Or a loading spinner
     }
 

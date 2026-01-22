@@ -1,26 +1,33 @@
-import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
+import { getToken } from 'next-auth/jwt';
+import { NextRequest } from 'next/server';
+import { headers } from 'next/headers';
 
 export interface AuthSession {
     userId: string;
     email: string;
     role: string;
+    name: string;
 }
 
-export async function getSession(): Promise<AuthSession | null> {
+export async function getSession(req?: Request | NextRequest): Promise<AuthSession | null> {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const { getServerSession } = await import('next-auth/next');
+        const { authOptions } = await import('@/app/api/auth/[...nextauth]/route');
 
-        if (!token) return null;
+        const session = await getServerSession(authOptions);
 
-        const decoded = jwt.verify(
-            token,
-            process.env.NEXTAUTH_SECRET || 'fallback-secret'
-        ) as AuthSession;
+        if (!session?.user) {
+            return null;
+        }
 
-        return decoded;
+        return {
+            userId: (session.user as any).id,
+            email: session.user.email || '',
+            role: (session.user as any).role || 'user',
+            name: session.user.name || 'Confidential'
+        };
     } catch (error) {
+        console.error('Session retrieval error:', error);
         return null;
     }
 }

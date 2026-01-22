@@ -13,6 +13,7 @@ interface Profile {
     gender: string;
     religion?: string;
     height?: number;
+    profession?: string;
     location: string;
     photoUrl: string;
     jobCategory?: string;
@@ -153,107 +154,152 @@ export function UserCard({ profile, index, isFavorite, onToggleFavorite, matchSc
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-rose-900/5 transition-all duration-300 overflow-hidden flex flex-col h-full relative"
+            className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-rose-900/10 transition-all duration-500 overflow-hidden flex flex-col h-full relative"
         >
-            {/* Image Section */}
-            <div className="relative aspect-[4/5] overflow-hidden">
+            {/* Image Section with Enhanced Overlay */}
+            <div className="relative aspect-[3/4] overflow-hidden">
                 <img
                     src={profile.photoUrl || 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&h=800'}
                     alt={profile.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
 
-                {/* Overlay Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80" />
+                {/* Sophisticated Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
 
-                {/* Compatibility Badge */}
-                <div className="absolute top-4 left-4">
-                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2 flex items-center gap-3">
-                        <div className="relative w-8 h-8">
-                            <svg className="w-8 h-8 transform -rotate-90">
-                                <circle
-                                    cx="16" cy="16" r="14"
-                                    stroke="rgba(255,255,255,0.1)"
-                                    strokeWidth="3"
-                                    fill="transparent"
-                                />
-                                <circle
-                                    cx="16" cy="16" r="14"
-                                    stroke="#f43f5e"
-                                    strokeWidth="3"
-                                    fill="transparent"
-                                    strokeDasharray={88}
-                                    strokeDashoffset={88 - (88 * compatibilityScore) / 100}
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">
-                                {compatibilityScore}%
-                            </span>
-                        </div>
-                        <div className="pr-1">
-                            <p className="text-[8px] font-bold text-rose-300 uppercase tracking-wider leading-none">Match</p>
+                {/* Compatibility Badge - Enhanced */}
+                <div className="absolute top-5 left-5">
+                    <div className="bg-gradient-to-br from-rose-500 to-orange-500 rounded-2xl p-3 shadow-2xl shadow-rose-500/30">
+                        <div className="flex items-center gap-2">
+                            <div className="relative w-10 h-10">
+                                <svg className="w-10 h-10 transform -rotate-90">
+                                    <circle
+                                        cx="20" cy="20" r="18"
+                                        stroke="rgba(255,255,255,0.2)"
+                                        strokeWidth="3"
+                                        fill="transparent"
+                                    />
+                                    <circle
+                                        cx="20" cy="20" r="18"
+                                        stroke="white"
+                                        strokeWidth="3"
+                                        fill="transparent"
+                                        strokeDasharray={113}
+                                        strokeDashoffset={113 - (113 * compatibilityScore) / 100}
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
+                                    {compatibilityScore}
+                                </span>
+                            </div>
+                            <div className="pr-1">
+                                <p className="text-[9px] font-bold text-white uppercase tracking-wider leading-tight">Match</p>
+                                <p className="text-[8px] text-white/80 leading-none">Score</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Favorite Button */}
+                {/* Favorite Button - Enhanced */}
                 <button
                     onClick={(e) => { e.preventDefault(); onToggleFavorite(profile.userId); }}
-                    className={`absolute top-4 right-4 w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 ${isFavorite
-                        ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
-                        : 'bg-white/20 backdrop-blur-md text-white border border-white/20 hover:bg-white/40'
+                    className={`absolute top-5 right-5 w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-90 shadow-xl ${isFavorite
+                            ? 'bg-rose-500 text-white shadow-rose-500/40'
+                            : 'bg-white/90 backdrop-blur-md text-slate-600 hover:bg-white'
                         }`}
                 >
-                    <Heart size={20} className={isFavorite ? 'fill-current' : ''} />
+                    <Heart size={22} className={isFavorite ? 'fill-current' : ''} />
                 </button>
 
-                {/* Status Indicator */}
-                <div className="absolute bottom-4 left-6 flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                    <span className="text-[10px] font-medium text-white/90 uppercase tracking-widest">Active Now</span>
+                {/* Name & Age Overlay - Premium Typography */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 pb-5">
+                    <Link href={`/profile/${profile.userId}`} className="block group/title">
+                        <div className="flex items-center gap-2.5 mb-1.5">
+                            <h2 className="text-3xl font-serif text-white font-bold tracking-tight group-hover/title:text-rose-300 transition-colors drop-shadow-lg">
+                                {profile.name}
+                            </h2>
+                            {profile.isVerified && (
+                                <BadgeCheck size={24} className="text-blue-400 flex-shrink-0 drop-shadow-lg" />
+                            )}
+                        </div>
+                        <div className="flex items-center gap-3 text-white/90">
+                            <span className="text-base font-medium">{profile.age} years</span>
+                            <span className="text-white/50">•</span>
+                            <div className="flex items-center gap-1.5">
+                                <MapPin size={14} className="text-rose-300" />
+                                <span className="text-sm font-medium">{profile.location}</span>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </div>
 
-            {/* Content Section */}
-            <div className="p-6 flex-1 flex flex-col justify-between">
-                <div className="space-y-4">
-                    <Link href={`/profile/${profile.userId}`} className="block group/title">
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-xl font-serif text-slate-900 font-bold tracking-tight group-hover/title:text-rose-600 transition-colors">{profile.name}, {profile.age}</h3>
-                            <BadgeCheck size={18} className="text-blue-500 flex-shrink-0" />
+            {/* Matrimonial Vitals Section - Information Rich */}
+            <div className="p-6 space-y-5 flex-1 flex flex-col">
+                {/* Key Details Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                    {profile.height && (
+                        <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-xl p-3 border border-rose-100">
+                            <p className="text-[9px] font-bold text-rose-600 uppercase tracking-wider mb-1">Height</p>
+                            <p className="text-lg font-bold text-slate-900">{profile.height} cm</p>
+                            <p className="text-[9px] text-slate-500 mt-0.5">{Math.floor(profile.height / 30.48)}'{Math.round((profile.height % 30.48) / 2.54)}"</p>
                         </div>
-                        <div className="text-[10px] text-slate-400 flex items-center gap-1 font-medium mt-0.5">
-                            <MapPin size={12} /> {profile.location}
+                    )}
+                    {profile.religion && (
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-100">
+                            <p className="text-[9px] font-bold text-blue-600 uppercase tracking-wider mb-1">Religion</p>
+                            <p className="text-sm font-bold text-slate-900 leading-tight">{profile.religion}</p>
                         </div>
-                    </Link>
-
-                    <div className="flex flex-wrap gap-2">
-                        <div className="px-3 py-1 bg-slate-50 text-[10px] font-medium text-slate-500 uppercase tracking-wide rounded-lg border border-slate-100 flex items-center gap-1.5">
-                            <Briefcase size={12} /> {profile.jobCategory || 'Professional'}
-                        </div>
-                        <div className="px-3 py-1 bg-slate-50 text-[10px] font-medium text-slate-500 uppercase tracking-wide rounded-lg border border-slate-100">
-                            {profile.maritalStatus?.toLowerCase() || 'Single'}
-                        </div>
+                    )}
+                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-100">
+                        <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Status</p>
+                        <p className="text-sm font-bold text-slate-900 leading-tight capitalize">{profile.maritalStatus?.toLowerCase() || 'Single'}</p>
                     </div>
-
-                    <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-                        {profile.bio || "Searching for a meaningful connection based on shared values."}
-                    </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-6">
+                {/* Profession & Job Category */}
+                {(profile.profession || profile.jobCategory) && (
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Briefcase size={20} className="text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Profession</p>
+                                <p className="text-base font-bold text-slate-900 leading-tight truncate">
+                                    {profile.profession || profile.jobCategory || 'Professional'}
+                                </p>
+                                {profile.jobStatus && (
+                                    <p className="text-xs text-slate-500 mt-1 capitalize">{profile.jobStatus.toLowerCase().replace('_', ' ')}</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Bio Section */}
+                {profile.bio && (
+                    <div className="flex-1">
+                        <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                            {profile.bio}
+                        </p>
+                    </div>
+                )}
+
+                {/* Action Buttons - Enhanced */}
+                <div className="grid grid-cols-2 gap-3 pt-4 mt-auto">
                     <Link
                         href={`/chat/${profile.userId}`}
-                        className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-600 py-3 rounded-xl text-xs font-medium transition-all"
+                        className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-xl text-sm font-semibold transition-all active:scale-95"
                     >
-                        <MessageCircle size={16} /> Chat
+                        <MessageCircle size={18} /> Chat
                     </Link>
                     <button
                         onClick={() => setIsProposing(true)}
-                        className="bg-slate-900 hover:bg-rose-600 text-white py-3 rounded-xl text-xs font-medium transition-all shadow-lg hover:shadow-rose-500/20 active:scale-95"
+                        className="bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white py-3.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-rose-500/30 hover:shadow-rose-500/40 active:scale-95 flex items-center justify-center gap-2"
                     >
-                        Propose
+                        <Send size={18} /> Propose
                     </button>
                 </div>
             </div>

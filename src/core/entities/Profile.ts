@@ -23,6 +23,7 @@ export enum FamilyType {
 export interface ProfileProps {
     id: string;
     userId: string;
+    name: string;
 
     // Vital Stats
     gender: string;
@@ -87,7 +88,7 @@ export class Profile {
         // photoUrl is handled by completion logic now
     }
 
-    static create(props: Partial<ProfileProps> & { id: string; userId: string; gender: string; dateOfBirth: Date; bio: string; location: string; photoUrl: string; isVerified?: boolean }): Profile {
+    static create(props: Partial<ProfileProps> & { id: string; userId: string; name: string; gender: string; dateOfBirth: Date; bio: string; location: string; photoUrl: string; isVerified?: boolean }): Profile {
         const defaults = {
             jobStatus: JobStatus.UNEMPLOYED,
             maritalStatus: MaritalStatus.SINGLE,
@@ -101,6 +102,7 @@ export class Profile {
 
     get id(): string { return this.props.id; }
     get userId(): string { return this.props.userId; }
+    get name(): string { return this.props.name; }
     get dateOfBirth(): Date { return this.props.dateOfBirth; }
     get age(): number {
         return Profile.calculateAge(this.props.dateOfBirth);
@@ -146,19 +148,25 @@ export class Profile {
     calculateCompletion(): number {
         let score = 0;
 
-        // Core Essentials (40% total)
-        if (this.props.gender) score += 8;
-        if (this.props.dateOfBirth) score += 8;
-        if (this.props.bio && this.props.bio.length > 20) score += 8;
-        if (this.props.location) score += 8;
-        if (this.props.photoUrl) score += 8;
+        // Core Essentials (45% total - adjusted for new fields)
+        if (this.props.gender) score += 5;
+        if (this.props.dateOfBirth) score += 5;
+        if (this.props.bio && this.props.bio.length > 20) score += 10;
+        if (this.props.location) score += 5;
+        if (this.props.photoUrl) score += 10;
+        if (this.props.religion) score += 5;
+        if (this.props.motherTongue) score += 5;
 
-        // Lifestyle & Profession (20% total)
-        if (this.props.jobStatus) score += 4;
-        if (this.props.maritalStatus) score += 4;
-        if (this.props.diet) score += 4;
-        if (this.props.smoking) score += 4;
-        if (this.props.drinking) score += 4;
+        // Vital Stats (10% total)
+        if (this.props.height) score += 5;
+        if (this.props.caste) score += 5;
+
+        // Lifestyle & Profession (15% total)
+        if (this.props.jobStatus) score += 3;
+        if (this.props.maritalStatus) score += 3;
+        if (this.props.diet) score += 3;
+        if (this.props.smoking) score += 3;
+        if (this.props.drinking) score += 3;
 
         // Family Details (20% total)
         if (this.props.fatherOccupation) score += 5;
@@ -166,22 +174,70 @@ export class Profile {
         if (this.props.siblings) score += 5;
         if (this.props.familyType) score += 5;
 
-        // Education/Career (10% total)
-        if (this.props.education) score += 2.5;
-        if (this.props.profession) score += 2.5;
-        if (this.props.incomeRange) score += 2.5;
-        if (this.props.jobCategory) score += 2.5;
+        // Education/Career (5% total)
+        if (this.props.education) score += 1.25;
+        if (this.props.profession) score += 1.25;
+        if (this.props.incomeRange) score += 1.25;
+        if (this.props.jobCategory) score += 1.25;
 
-        // Partner Preferences (10% total)
+        // Partner Preferences (5% total)
         const prefFields = [
             this.props.prefAgeMin, this.props.prefAgeMax,
             this.props.prefHeightMin, this.props.prefReligion,
             this.props.prefEducation, this.props.prefLifestyle
         ];
         const filledPrefs = prefFields.filter(f => f !== undefined && f !== null).length;
-        score += (filledPrefs / prefFields.length) * 10;
+        score += (filledPrefs / prefFields.length) * 5;
 
         return Math.min(Math.round(score), 100);
+    }
+
+    /**
+     * Returns actionable tips based on missing fields.
+     */
+    getMissingTips(): { field: string; tip: string; id: string }[] {
+        const tips = [];
+        if (!this.props.photoUrl) {
+            tips.push({ field: 'Photo', tip: 'Profiles with photos get 10x more responses. Add yours now.', id: 'section-visuals' });
+        }
+        if (!this.props.height) {
+            tips.push({ field: 'Height', tip: 'Adding your height helps matches visualize you better.', id: 'section-basics' });
+        }
+        if (!this.props.religion) {
+            tips.push({ field: 'Religion', tip: 'Spirituality is a core match factor. Add your religion.', id: 'section-basics' });
+        }
+        if (!this.props.bio || this.props.bio.length < 50) {
+            tips.push({ field: 'About', tip: 'A detailed bio (50+ chars) helps others understand your personality and values.', id: 'section-career' });
+        }
+        if (!this.props.location) {
+            tips.push({ field: 'Location', tip: 'Specify your current city to find matches in your vicinity.', id: 'section-basics' });
+        }
+        if (!this.props.jobCategory || !this.props.profession) {
+            tips.push({ field: 'Career', tip: 'Adding your profession and job category highlights your professional stability.', id: 'section-career' });
+        }
+        if (!this.props.education) {
+            tips.push({ field: 'Education', tip: 'Education is a key selection criteria for many. Add your highest qualification.', id: 'section-career' });
+        }
+        if (!this.props.motherTongue) {
+            tips.push({ field: 'Heritage', tip: 'Your mother tongue is a vital part of your cultural identity.', id: 'section-family' });
+        }
+        if (!this.props.photoGallery || this.props.photoGallery.split(',').filter(u => u).length < 3) {
+            tips.push({ field: 'Gallery', tip: 'Add at least 3 photos to your gallery for a 200% boost in profile strength.', id: 'section-visuals' });
+        }
+
+        // Family Details
+        if (!this.props.fatherOccupation || !this.props.motherOccupation || !this.props.familyType) {
+            tips.push({ field: 'Family', tip: 'Family details build immense trust and transparency in matrimonial profiles.', id: 'section-family' });
+        }
+
+        // Partner Preferences
+        const prefFields = [this.props.prefAgeMin, this.props.prefAgeMax, this.props.prefReligion, this.props.prefEducation];
+        const filledPrefs = prefFields.filter(f => f !== undefined && f !== null).length;
+        if (filledPrefs < prefFields.length) {
+            tips.push({ field: 'Preferences', tip: 'Tell us who you are looking for so we can suggest better matches.', id: 'section-preferences' });
+        }
+
+        return tips;
     }
 
     /**
@@ -203,7 +259,8 @@ export class Profile {
             age: this.age,
             isVerified: this.isVerified,
             completionPercentage: this.calculateCompletion(),
-            isReady: this.isReadyForInteractions()
+            isReady: this.isReadyForInteractions(),
+            tips: this.getMissingTips()
         };
     }
 

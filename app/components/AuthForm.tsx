@@ -46,7 +46,14 @@ export default function AuthForm({ mode: initialMode, onSuccess }: AuthFormProps
                     const profileRes = await fetch('/api/profile');
                     const profileData = await profileRes.json();
 
-                    // Logic for redirection based on role or profile presence
+                    // Admin Redirection
+                    if (profileData.user?.role === 'ADMIN') {
+                        router.push('/admin');
+                        router.refresh();
+                        return;
+                    }
+
+                    // Logic for redirection based on profile presence
                     if (profileData.success && profileData.profile) {
                         router.push('/discover');
                     } else {

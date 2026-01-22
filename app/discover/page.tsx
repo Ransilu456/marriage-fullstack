@@ -28,11 +28,17 @@ interface Profile {
     bio: string;
 }
 
+interface ScoredProfile {
+    profile: Profile;
+    score: number;
+    reasons: string[];
+}
+
 export default function DiscoverPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const [profiles, setProfiles] = useState<Profile[]>([]);
+    const [profiles, setProfiles] = useState<ScoredProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -271,12 +277,13 @@ export default function DiscoverPage() {
                         </div>
                     ) : profiles.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {profiles.map((p: any, idx) => (
+                            {profiles.map((sp: any, idx) => (
                                 <UserCard
-                                    key={p.id}
-                                    profile={p}
+                                    key={sp.profile.id}
+                                    profile={sp.profile}
+                                    matchScore={sp.score}
                                     index={idx}
-                                    isFavorite={favoriteIds.includes(p.userId)}
+                                    isFavorite={favoriteIds.includes(sp.profile.userId)}
                                     onToggleFavorite={toggleFavorite}
                                 />
                             ))}

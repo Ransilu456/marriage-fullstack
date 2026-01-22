@@ -5,6 +5,7 @@ import { AuditLog } from '../entities/AuditLog';
 
 interface UpsertProfileInput {
     userId: string;
+    name: string;
 
     // Vital Stats
     gender: string;
@@ -107,6 +108,7 @@ export class UpsertProfileUseCase {
             const profile = Profile.create({
                 id: crypto.randomUUID(),
                 userId: input.userId,
+                name: input.name,
                 gender: input.gender,
                 dateOfBirth: new Date(input.dateOfBirth),
                 height: input.height,

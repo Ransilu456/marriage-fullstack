@@ -7,6 +7,8 @@ import { useEffect } from 'react';
 import { UserRole } from '@/src/core/entities/User';
 import { Loader2 } from 'lucide-react';
 
+import AdminSidebar from '@/app/components/admin/AdminSidebar';
+
 export default function AdminLayout({
     children,
 }: {
@@ -36,8 +38,11 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {children}
+        <div className="min-h-screen bg-slate-50">
+            <AdminSidebar />
+            <div className="lg:pl-72 min-h-screen transition-all duration-300">
+                {children}
+            </div>
         </div>
     );
 }

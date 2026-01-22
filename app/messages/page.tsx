@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MessageSquare, Heart, ChevronRight, ShieldCheck, Clock, MapPin, BadgeCheck, Sparkles } from 'lucide-react';
+import { Search, MessageSquare, Heart, ChevronRight, ShieldCheck, Clock, MapPin, BadgeCheck, Sparkles, Zap, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface Conversation {
@@ -27,15 +27,18 @@ export default function MessagesPage() {
     const router = useRouter();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [matches, setMatches] = useState<any[]>([]);
+    const [profile, setProfile] = useState<any>(null);
+    const [pendingCount, setPendingCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [msgRes, matchRes] = await Promise.all([
+            const [msgRes, matchRes, profRes] = await Promise.all([
                 fetch('/api/messages'),
-                fetch('/api/matches')
+                fetch('/api/matches'),
+                fetch('/api/profile')
             ]);
 
             if (msgRes.ok) {
@@ -45,6 +48,18 @@ export default function MessagesPage() {
             if (matchRes.ok) {
                 const data = await matchRes.json();
                 setMatches(data.matches || []);
+            }
+            if (profRes.ok) {
+                const data = await profRes.json();
+                setProfile(data.profile);
+            }
+
+            // Get pending interests (received)
+            const intRes = await fetch('/api/interests?type=received');
+            if (intRes.ok) {
+                const data = await intRes.json();
+                const pending = (data.interests || []).filter((i: any) => i.status === 'PENDING').length;
+                setPendingCount(pending);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -119,11 +134,52 @@ export default function MessagesPage() {
                                             </div>
                                             <span className="text-xs font-bold text-slate-700">Pending</span>
                                         </div>
-                                        <span className="text-xl font-serif text-slate-900 font-bold">3</span>
+                                        <span className="text-xl font-serif text-slate-900 font-bold">{pendingCount}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Profile Strength Tips - Messages Sidebar */}
+                        {profile && profile.completionPercentage < 100 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-gradient-to-br from-rose-600 to-orange-500 rounded-[2.5rem] p-8 text-white space-y-6 shadow-2xl shadow-rose-200/50 relative overflow-hidden group"
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                                <div className="space-y-4 relative z-10">
+                                    <div className="flex items-center gap-2">
+                                        <Zap size={20} className="text-white animate-pulse" />
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/90">Profile Power-up</h4>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-3xl font-bold font-serif">{profile.completionPercentage}%</span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-white/80">Strength</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                                            <div
+                                                className="bg-white h-full rounded-full transition-all duration-1000"
+                                                style={{ width: `${profile.completionPercentage}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 space-y-3 border border-white/10 hover:bg-white/20 transition-all cursor-default">
+                                        <p className="text-xs font-medium leading-relaxed italic">
+                                            "{(profile.tips && profile.tips[0]?.tip) || 'Complete your profile to get seen by more people.'}"
+                                        </p>
+                                        <Link
+                                            href="/profile"
+                                            className="flex items-center justify-between group/link"
+                                        >
+                                            <span className="text-[10px] font-bold uppercase tracking-widest bg-white text-rose-600 px-4 py-2 rounded-xl group-hover/link:bg-slate-900 group-hover/link:text-white transition-all shadow-lg shadow-rose-900/10">Boost Now</span>
+                                            <ArrowRight size={16} className="text-white group-hover/link:translate-x-1 transition-transform" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
 
                         <div className="bg-slate-900 rounded-3xl p-8 text-white space-y-6 shadow-xl shadow-slate-900/10">
                             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">

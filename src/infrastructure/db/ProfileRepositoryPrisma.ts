@@ -64,16 +64,16 @@ export class ProfileRepositoryPrisma implements IProfileRepository {
     async findByUserId(userId: string): Promise<Profile | null> {
         const found = await prisma.profile.findUnique({
             where: { userId },
-            include: { user: { select: { accountStatus: true } } }
+            include: { user: { select: { accountStatus: true, name: true } } }
         });
-        return found ? this.toDomain(found, (found as any).user?.accountStatus) : null;
+        return found ? this.toDomain(found, (found as any).user?.accountStatus, (found as any).user?.name) : null;
     }
 
     async findAll(): Promise<Profile[]> {
         const found = await prisma.profile.findMany({
-            include: { user: { select: { accountStatus: true } } }
+            include: { user: { select: { accountStatus: true, name: true } } }
         });
-        return found.map(p => this.toDomain(p, (p as any).user?.accountStatus));
+        return found.map(p => this.toDomain(p, (p as any).user?.accountStatus, (p as any).user?.name));
     }
 
     async findFiltered(filters: {
@@ -116,7 +116,7 @@ export class ProfileRepositoryPrisma implements IProfileRepository {
                     }
                 },
                 include: {
-                    user: { select: { accountStatus: true } }
+                    user: { select: { accountStatus: true, name: true } }
                 },
                 skip,
                 take: limit,
@@ -133,15 +133,16 @@ export class ProfileRepositoryPrisma implements IProfileRepository {
         ]);
 
         return {
-            profiles: profiles.map(p => this.toDomain(p, (p as any).user?.accountStatus)),
+            profiles: profiles.map(p => this.toDomain(p, (p as any).user?.accountStatus, (p as any).user?.name)),
             total
         };
     }
 
-    private toDomain(p: PrismaProfile, accountStatus?: string): Profile {
+    private toDomain(p: PrismaProfile, accountStatus?: string, name?: string): Profile {
         return Profile.create({
             id: p.id,
             userId: p.userId,
+            name: name || 'Confidential',
             gender: p.gender || 'Unknown',
             dateOfBirth: p.dateOfBirth || new Date(0),
             height: p.height || undefined,

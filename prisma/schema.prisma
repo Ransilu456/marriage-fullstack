@@ -145,9 +145,9 @@ model Profile {
 model Interest {
     id         String @id @default(cuid())
     senderId   String
-    sender     User   @relation("SentInterests", fields: [senderId], references: [id])
+    sender     User   @relation("SentInterests", fields: [senderId], references: [id], onDelete: Cascade)
     receiverId String
-    receiver   User   @relation("ReceivedInterests", fields: [receiverId], references: [id])
+    receiver   User   @relation("ReceivedInterests", fields: [receiverId], references: [id], onDelete: Cascade)
 
     status  InterestStatus @default(PENDING)
     message String?
@@ -162,9 +162,9 @@ model Interest {
 model Match {
     id      String @id @default(cuid())
     userAId String
-    userA   User   @relation("MatchUserA", fields: [userAId], references: [id])
+    userA   User   @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
     userBId String
-    userB   User   @relation("MatchUserB", fields: [userBId], references: [id])
+    userB   User   @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
 
@@ -179,7 +179,7 @@ model Message {
     matchId  String
     match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
     senderId String
-    sender   User   @relation(fields: [senderId], references: [id])
+    sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
     content String
     type    MessageType @default(TEXT)
@@ -193,7 +193,7 @@ model Message {
 model Verification {
     id     String @id @default(cuid())
     userId String
-    user   User   @relation(fields: [userId], references: [id])
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     documentType String
     documentUrl  String
@@ -209,9 +209,9 @@ model Verification {
 model Report {
     id         String @id @default(cuid())
     reporterId String
-    reporter   User   @relation("ReportedBy", fields: [reporterId], references: [id])
+    reporter   User   @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
     targetId   String
-    target     User   @relation("ReportedUser", fields: [targetId], references: [id])
+    target     User   @relation("ReportedUser", fields: [targetId], references: [id], onDelete: Cascade)
 
     reason String
     status String @default("OPEN")
@@ -224,9 +224,9 @@ model Report {
 model Block {
     id        String @id @default(cuid())
     blockerId String
-    blocker   User   @relation("BlockedUsers", fields: [blockerId], references: [id])
+    blocker   User   @relation("BlockedUsers", fields: [blockerId], references: [id], onDelete: Cascade)
     targetId  String
-    target    User   @relation("BlockedBy", fields: [targetId], references: [id])
+    target    User   @relation("BlockedBy", fields: [targetId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
 
@@ -237,7 +237,7 @@ model Block {
 model AuditLog {
     id        String   @id @default(cuid())
     userId    String
-    user      User     @relation(fields: [userId], references: [id])
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     action    String
     resource  String?
     metadata  String?
@@ -249,9 +249,9 @@ model AuditLog {
 model Favorite {
     id          String   @id @default(cuid())
     userId      String
-    user        User     @relation("UserFavorites", fields: [userId], references: [id])
+    user        User     @relation("UserFavorites", fields: [userId], references: [id], onDelete: Cascade)
     favoritedId String
-    favorited   User     @relation("FavoritedByUser", fields: [favoritedId], references: [id])
+    favorited   User     @relation("FavoritedByUser", fields: [favoritedId], references: [id], onDelete: Cascade)
     createdAt   DateTime @default(now())
 
     @@unique([userId, favoritedId])
@@ -261,7 +261,7 @@ model Favorite {
 model IdentityDocument {
     id              String   @id @default(cuid())
     userId          String
-    user            User     @relation(fields: [userId], references: [id])
+    user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     type            String
     fileUrl         String
     status          String   @default("PENDING")

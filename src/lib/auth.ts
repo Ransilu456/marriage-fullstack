@@ -11,7 +11,7 @@ export interface AuthSession {
 
 export async function getSession(req?: Request | NextRequest): Promise<AuthSession | null> {
     try {
-        const { getServerSession } = await import('next-auth/next');
+    const { getServerSession } = await import('next-auth/next');
         const { authOptions } = await import('@/app/api/auth/[...nextauth]/route');
 
         const session = await getServerSession(authOptions);

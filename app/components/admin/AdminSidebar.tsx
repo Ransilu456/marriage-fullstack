@@ -118,7 +118,10 @@ export default function AdminSidebar() {
                             </div>
                         </div>
                         <button
-                            onClick={() => signOut({ callbackUrl: '/' })}
+                            onClick={() => {
+                                localStorage.clear();
+                                signOut({ callbackUrl: '/' });
+                            }}
                             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-sm font-medium"
                         >
                             <LogOut size={16} />

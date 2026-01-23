@@ -78,11 +78,23 @@ export default function ProfilePage() {
     const [generalSuccess, setGeneralSuccess] = useState('');
     const [prevCompletion, setPrevCompletion] = useState<number | null>(null);
     const [showStrengthToast, setShowStrengthToast] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [formData, setFormData] = useState<Partial<ProfileData>>({});
     const [errors, setErrors] = useState<Record<string, string[]>>({});
     const [verificationDocs, setVerificationDocs] = useState<VerificationDoc[]>([]);
     const [selectedVerifyFile, setSelectedVerifyFile] = useState<File | null>(null);
+
+    const REQUIRED_FIELDS = [
+        "bio",
+        "location",
+    ];
+
+    const isFormValid = REQUIRED_FIELDS.every((field) => {
+        const value = (formData as any)[field];
+        return value !== undefined && value !== null && value.toString().trim() !== "";
+    });
 
     // Verification state
     const [userVerification, setUserVerification] = useState<{
@@ -1326,7 +1338,7 @@ export default function ProfilePage() {
                                                         </div>
                                                     </div>
                                                     <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-600' :
-                                                            doc.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+                                                        doc.status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
                                                         }`}>
                                                         {doc.status}
                                                     </span>
@@ -1335,6 +1347,140 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
                                 )}
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        );
+    };
+
+    const handleDeleteAccount = async () => {
+        setIsDeleting(true);
+        setGeneralError('');
+
+        try {
+            const res = await fetch('/api/user/account', {
+                method: 'DELETE',
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                // Clear localStorage and sign out
+                localStorage.clear();
+                await signOut({ callbackUrl: '/' });
+            } else {
+                setGeneralError(data.error || 'Failed to delete account');
+                setShowDeleteModal(false);
+            }
+        } catch (error) {
+            setGeneralError('Connection error');
+            setShowDeleteModal(false);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const renderSecurityContent = () => {
+        return (
+            <div className="space-y-8">
+                {/* Delete Account Section */}
+                <section className="bg-white/70 backdrop-blur-sm rounded-[2.5rem] border border-rose-200 shadow-2xl shadow-rose-100/50 p-10 space-y-8">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Trash2 className="text-rose-500" size={18} />
+                            <h3 className="font-serif text-2xl text-slate-900 font-bold">Delete Account</h3>
+                        </div>
+                        <p className="text-sm text-slate-400">Permanently remove your account and all associated data</p>
+                    </div>
+
+                    <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 space-y-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <X className="text-rose-600" size={20} />
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="text-sm font-bold text-rose-900">Warning: This action cannot be undone</h4>
+                                <ul className="text-xs text-rose-700 space-y-1 list-disc list-inside">
+                                    <li>Your profile and all personal information will be permanently deleted</li>
+                                    <li>All your interests, matches, and messages will be removed</li>
+                                    <li>Your verification documents will be deleted from our servers</li>
+                                    <li>You will need to create a new account to use the platform again</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg"
+                    >
+                        <Trash2 size={16} />
+                        Delete My Account
+                    </button>
+                </section>
+
+                {/* Delete Confirmation Modal */}
+                <AnimatePresence>
+                    {showDeleteModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => !isDeleting && setShowDeleteModal(false)}
+                                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+                            />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="relative bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl space-y-6 border border-slate-100"
+                            >
+                                <div className="space-y-2">
+                                    <div className="w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center mx-auto">
+                                        <Trash2 className="text-rose-600" size={28} />
+                                    </div>
+                                    <h3 className="text-2xl font-serif text-slate-900 font-bold text-center">Delete Account?</h3>
+                                    <p className="text-sm text-slate-500 text-center">
+                                        Are you absolutely sure? This action is permanent and cannot be reversed.
+                                    </p>
+                                </div>
+
+                                {generalError && (
+                                    <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+                                        <p className="text-xs text-rose-600 font-medium">{generalError}</p>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowDeleteModal(false)}
+                                        disabled={isDeleting}
+                                        className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteAccount}
+                                        disabled={isDeleting}
+                                        className="flex-1 py-3 bg-rose-600 text-white rounded-xl text-sm font-bold hover:bg-rose-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <Loader2 className="animate-spin" size={16} />
+                                                Deleting...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Trash2 size={16} />
+                                                Yes, Delete
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </motion.div>
                         </div>
                     )}
@@ -1636,7 +1782,10 @@ export default function ProfilePage() {
                                 ))}
                                 <div className="my-4 h-px bg-slate-100/50 mx-4" />
                                 <button
-                                    onClick={() => signOut()}
+                                    onClick={() => {
+                                        localStorage.clear();
+                                        signOut();
+                                    }}
                                     className="w-full flex items-center gap-4 px-5 py-4 text-rose-500 hover:bg-rose-50 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all group"
                                 >
                                     <LogOut size={18} className="group-hover:scale-110 transition-transform" />
@@ -1699,7 +1848,7 @@ export default function ProfilePage() {
                                     <>
                                         {activeTab === 'edit-profile' && renderEditContent()}
                                         {activeTab === 'verification' && renderVerificationContent()}
-                                        {(activeTab === 'membership' || activeTab === 'security') && (
+                                        {activeTab === 'membership' && (
                                             <div className="bg-white rounded-3xl p-32 text-center border border-slate-100 shadow-sm space-y-6">
                                                 <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto">
                                                     <Sparkles size={32} className="text-rose-500" />
@@ -1713,6 +1862,7 @@ export default function ProfilePage() {
                                                 </button>
                                             </div>
                                         )}
+                                        {activeTab === 'security' && renderSecurityContent()}
                                     </>
                                 )}
                             </motion.div>
@@ -1745,12 +1895,23 @@ export default function ProfilePage() {
                         )}
                         <button
                             onClick={handleSubmit}
-                            disabled={isSaving}
-                            className="flex items-center gap-2 bg-slate-900 hover:bg-rose-600 text-white px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg disabled:opacity-50"
+                            disabled={isSaving || !isFormValid}
+                            className={`flex items-center gap-2 px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg
+    ${isSaving || !isFormValid
+                                    ? "bg-gray-400 cursor-not-allowed opacity-50"
+                                    : "bg-slate-900 hover:bg-rose-600 text-white"
+                                }
+  `}
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                            {isSaving ? 'Saving...' : 'Save Changes'}
+                            {isSaving ? "Saving..." : "Save Changes"}
                         </button>
+                        {!isFormValid && (
+                            <p className="text-[10px] text-red-500 font-semibold uppercase tracking-widest">
+                                Please fill all required fields
+                            </p>
+                        )}
+
                     </div>
                 </div>
             )}

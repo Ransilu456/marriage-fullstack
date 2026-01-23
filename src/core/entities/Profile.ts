@@ -225,8 +225,8 @@ export class Profile {
             tips.push({ field: 'Gallery', tip: 'Add at least 3 photos to your gallery for a 200% boost in profile strength.', id: 'section-visuals' });
         }
 
-        // Family Details
-        if (!this.props.fatherOccupation || !this.props.motherOccupation || !this.props.familyType) {
+        // Family Details - only show tip if ALL family fields are missing
+        if (!this.props.fatherOccupation && !this.props.motherOccupation && !this.props.siblings && !this.props.familyType) {
             tips.push({ field: 'Family', tip: 'Family details build immense trust and transparency in matrimonial profiles.', id: 'section-family' });
         }
 

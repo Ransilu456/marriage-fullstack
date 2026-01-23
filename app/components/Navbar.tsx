@@ -67,7 +67,10 @@ export default function Navbar() {
                                 Profile
                             </NextLink>
                             <button
-                                onClick={() => signOut()}
+                                onClick={() => {
+                                    localStorage.clear();
+                                    signOut();
+                                }}
                                 className="text-xs font-medium text-slate-500 hover:text-rose-600 transition-colors"
                             >
                                 Log out
@@ -132,7 +135,11 @@ export default function Navbar() {
                                         My Profile
                                     </NextLink>
                                     <button
-                                        onClick={() => { signOut(); setIsOpen(false); }}
+                                        onClick={() => {
+                                            localStorage.clear();
+                                            signOut();
+                                            setIsOpen(false);
+                                        }}
                                         className="text-left text-sm font-medium text-rose-600"
                                     >
                                         Sign Out

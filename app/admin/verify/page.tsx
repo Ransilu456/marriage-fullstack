@@ -28,6 +28,7 @@ export default function VerifyPage() {
             const res = await fetch('/api/admin/verify');
             const data = await res.json();
             if (data.verifications) setRequests(data.verifications);
+            console.log("Admin Req:", data)
         } catch (error) {
             console.error('Failed to fetch verifications', error);
         } finally {
@@ -85,7 +86,7 @@ export default function VerifyPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {requests.map((req) => (
                         <div key={req.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-                            {/* Preview Area (Mock) */}
+                            {/* Preview Area */}
                             <div className="h-48 bg-slate-100 flex items-center justify-center border-b border-slate-100 relative group cursor-pointer" onClick={() => window.open(req.fileUrl, '_blank')}>
                                 <FileText size={48} className="text-slate-300 group-hover:scale-110 transition-transform" />
                                 <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

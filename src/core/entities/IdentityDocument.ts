@@ -1,4 +1,3 @@
-
 export interface IdentityDocumentProps {
     id: string;
     userId: string;
@@ -9,6 +8,7 @@ export interface IdentityDocumentProps {
     createdAt: Date;
     updatedAt: Date;
 }
+
 
 export class IdentityDocument {
     constructor(private props: IdentityDocumentProps) { }

@@ -12,7 +12,6 @@ export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch real stats here. For now, we'll simulate or fetch basic user count.
         fetchStats();
     }, []);
 
@@ -23,8 +22,8 @@ export default function AdminDashboardPage() {
             if (data) {
                 setStats({
                     totalUsers: data.pagination?.total || 0,
-                    pendingVerifications: 5, // Placeholder until verified API
-                    recentSignups: 12 // Placeholder
+                    pendingVerifications: 5, 
+                    recentSignups: 12 
                 });
             }
         } catch (error) {
@@ -78,7 +77,7 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-serif font-bold text-slate-900">Admin <span className="text-rose-600">Dashboard</span></h1>
-                    <p className="text-slate-500 mt-2 text-lg font-light">Welcome back, Administrator. Here's what's happening today.</p>
+                    <p className="text-slate-500 mt-2 text-lg font-light">Welcome back, Administrator. Here&lsquo;s what&apos;s happening today.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="px-4 py-2 bg-white rounded-full text-sm font-bold text-slate-500 border border-slate-200 shadow-sm flex items-center gap-2">
@@ -104,9 +103,9 @@ export default function AdminDashboardPage() {
                 ))}
             </div>
 
-            {/* Quick Actions / Recent Activity Area */}
+            {/* Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm min-h-[400px]">
+                <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm min-h-100">
                     <h3 className="text-xl font-serif font-bold text-slate-900 mb-6">System Health</h3>
                     <div className="flex items-center justify-center h-64 text-slate-400 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
                         Placeholder Graph / Chart

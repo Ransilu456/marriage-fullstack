@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, Mail, Calendar, Shield, MapPin, Briefcase, UserIcon, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface UserDetail {
     id: string;
@@ -78,7 +79,7 @@ export default function UserDetailsPage() {
                         <div className="w-24 h-24 rounded-2xl bg-white p-1 shadow-md">
                             <div className="w-full h-full rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
                                 {user.profile?.photoUrl ? (
-                                    <img src={user.profile.photoUrl} alt={user.name} className="w-full h-full object-cover" />
+                                    <Image src={user.profile.photoUrl} alt={user.name || 'User'} fill className="object-cover" unoptimized />
                                 ) : (
                                     <span className="text-2xl font-bold text-slate-300">{user.name?.[0]}</span>
                                 )}

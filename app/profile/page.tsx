@@ -14,6 +14,7 @@ import {
     Plus, Sparkles, ScrollText, Fingerprint, Crown,
     ArrowRight, Zap, X
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface ProfileData {
     id: string;
@@ -770,7 +771,7 @@ export default function ProfilePage() {
                         <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-dashed border-slate-200 bg-slate-50 group hover:border-rose-300 transition-all">
                             {formData.photoUrl ? (
                                 <>
-                                    <img src={formData.photoUrl} className="w-full h-full object-cover" alt="Profile" />
+                                    <Image src={formData.photoUrl} alt="Profile" fill className="object-cover" unoptimized />
                                     <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
                                         <label className="p-3 bg-white text-slate-900 rounded-xl cursor-pointer hover:bg-rose-600 hover:text-white transition-all">
                                             <Camera size={20} />
@@ -794,7 +795,7 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             {formData.photoGallery?.split(',').filter(u => u).map((url, idx) => (
                                 <div key={idx} className="aspect-square rounded-xl overflow-hidden relative group border border-slate-200">
-                                    <img src={url} className="w-full h-full object-cover" alt={`Gallery ${idx}`} />
+                                    <Image src={url} alt={`Gallery ${idx}`} fill className="object-cover" unoptimized />
                                     <button
                                         onClick={() => {
                                             const gallery = formData.photoGallery!.split(',').filter((_, i) => i !== idx);

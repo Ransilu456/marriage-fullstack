@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Heart, Sparkles, MessageCircle } from 'lucide-react';
+import Image from 'next/image';
 
 interface MatchModalProps {
     isOpen: boolean;
@@ -80,9 +81,9 @@ export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage
                             animate={{ x: 0, opacity: 1, rotate: 0 }}
                             className="relative z-10"
                         >
-                            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transform -rotate-3">
+                            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transform -rotate-3 relative">
                                 {myImage ? (
-                                    <img src={myImage} alt="Me" className="w-full h-full object-cover" />
+                                    <Image src={myImage} alt="Me" fill className="object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">🫵</div>
                                 )}
@@ -103,9 +104,9 @@ export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage
                             animate={{ x: 0, opacity: 1, rotate: 0 }}
                             className="relative z-10"
                         >
-                            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transform rotate-3">
+                            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transform rotate-3 relative">
                                 {partnerImage ? (
-                                    <img src={partnerImage} alt={partnerName} className="w-full h-full object-cover" />
+                                    <Image src={partnerImage} alt={partnerName} fill className="object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">👤</div>
                                 )}

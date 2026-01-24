@@ -54,7 +54,7 @@ export default function Navbar() {
                         ))}
                     </div>
 
-                    <div className="h-4 w-[1px] bg-slate-200 mx-1" />
+                    <div className="h-4 w-px bg-slate-200 mx-1" />
 
                     {session ? (
                         <div className="flex items-center gap-6">

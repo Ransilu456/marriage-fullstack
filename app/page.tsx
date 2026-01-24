@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowUpRight, Heart, HeartHandshake, ArrowRight, BadgeCheck, Users, ShieldCheck } from 'lucide-react';
 import AuthForm from './components/AuthForm';
 
@@ -97,7 +98,7 @@ export default function LandingPage() {
                         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=64&h=64",
                         "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=64&h=64"
                       ].map((url, i) => (
-                        <img key={i} src={url} className="w-10 h-10 rounded-full border-2 border-white object-cover" alt="" />
+                        <Image key={i} src={url} alt="" width={40} height={40} className="w-10 h-10 rounded-full border-2 border-white object-cover" unoptimized />
                       ))}
                       <div className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-600">+2k</div>
                     </div>

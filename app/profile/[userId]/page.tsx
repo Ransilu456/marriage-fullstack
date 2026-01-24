@@ -11,6 +11,7 @@ import {
     Home, ArrowRight, Sparkles, ShieldCheck, X
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ProfileData {
     id: string;
@@ -152,7 +153,7 @@ export default function UserProfilePage() {
                     {/* Image Section */}
                     <div className="lg:col-span-5">
                         <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-xl border-8 border-white relative">
-                            <img src={profile.photoUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&h=800"} className="w-full h-full object-cover" alt={profile.name} />
+                            <Image src={profile.photoUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=600&h=800"} alt={profile.name} fill className="object-cover" unoptimized />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-40" />
                             <div className="absolute top-6 right-6 flex flex-col gap-3">
                                 <button

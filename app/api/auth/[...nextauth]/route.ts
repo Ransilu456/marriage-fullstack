@@ -4,6 +4,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { UserRepositoryPrisma } from '@/src/infrastructure/db/UserRepositoryPrisma';
 import { LoginUserUseCase } from '@/src/core/use-cases/LoginUser';
 
+console.log('!!! NEXTAUTH ROUTE HANDLER INITIALIZED !!!');
+
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
@@ -12,8 +14,15 @@ export const authOptions: NextAuthOptions = {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" }
             },
-            async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) return null;
+            async authorize(credentials, req) {
+                console.log('>>> [NEXTAUTH] AUTHORIZE START');
+                console.log('>>> Host:', (req as any)?.headers?.host || 'unknown');
+                console.log('>>> Credentials:', { email: credentials?.email, hasPassword: !!credentials?.password });
+
+                if (!credentials || !credentials.email || !credentials.password) {
+                    console.log('>>> [NEXTAUTH] Missing inputs');
+                    return null;
+                }
 
                 try {
                     const repo = new UserRepositoryPrisma();
@@ -23,27 +32,32 @@ export const authOptions: NextAuthOptions = {
                         password: credentials.password
                     });
 
+                    console.log('>>> [NEXTAUTH] Success! User:', user.id, user.role);
+
                     return {
                         id: user.id,
                         email: user.email,
                         name: user.name,
                         role: user.role
                     };
-                } catch (error) {
+                } catch (error: any) {
+                    console.error('>>> [NEXTAUTH] Authorize Error:', error.message);
                     return null;
                 }
             }
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
             if (user) {
+                console.log('>>> [NEXTAUTH] JWT CALLBACK - NEW USER:', user.id, (user as any).role);
                 token.id = user.id;
                 token.role = (user as any).role;
             }
             return token;
         },
         async session({ session, token }) {
+            console.log('>>> [NEXTAUTH] SESSION CALLBACK - ENRICHING');
             if (session.user) {
                 (session.user as any).id = token.id;
                 (session.user as any).role = token.role;

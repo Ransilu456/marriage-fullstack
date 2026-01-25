@@ -1,17 +1,15 @@
-
 import { NextResponse } from 'next/server';
 import { UserRepositoryPrisma } from '@/src/infrastructure/db/UserRepositoryPrisma';
 import bcrypt from 'bcryptjs';
 import { User, UserRole, AccountStatus } from '@/src/core/entities/User';
 import crypto from 'crypto';
+import { getSession } from '@/src/lib/auth';
 
 export async function POST(request: Request) {
     try {
-        const secret = request.headers.get('x-admin-secret');
-        const expectedSecret = process.env.ADMIN_SECRET || 'admin-secret-123';
-
-        if (secret !== expectedSecret) {
-            return NextResponse.json({ error: 'Forbidden: Invalid Admin Secret' }, { status: 403 });
+        const session = await getSession();
+        if (!session || session.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 401 });
         }
 
         const body = await request.json();

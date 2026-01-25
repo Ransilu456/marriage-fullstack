@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/src/lib/auth';
-import { GetPendingVerifications } from '@/src/core/use-cases/GetPendingVerifications';
+import { GetIdentityVerifications } from '@/src/core/use-cases/GetIdentityVerifications';
 import { AdminVerifyIdentity } from '@/src/core/use-cases/AdminVerifyIdentity';
 
 export async function GET(request: Request) {
@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10');
 
     try {
-        const useCase = new GetPendingVerifications();
-        const result = await useCase.execute(page, limit);
+        const useCase = new GetIdentityVerifications();
+        const result = await useCase.execute(page, limit, status);
         return NextResponse.json(result);
     } catch (error) {
         console.error(error);

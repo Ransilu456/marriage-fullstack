@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '../../../../src/lib/auth';
 import { IdentityDocumentRepositoryPrisma } from '../../../../src/infrastructure/db/IdentityDocumentRepositoryPrisma';
+import { GetIdentityDocuments } from '../../../../src/core/use-cases/GetIdentityDocuments';
 
 export async function GET() {
     try {
@@ -10,11 +11,12 @@ export async function GET() {
         }
 
         const docRepo = new IdentityDocumentRepositoryPrisma();
-        const docs = await docRepo.findByUserId(session.userId);
+        const useCase = new GetIdentityDocuments(docRepo);
+        const docs = await useCase.execute(session.userId);
 
         return NextResponse.json({
             success: true,
-            documents: docs.map(d => d.toJSON())
+            documents: docs
         });
     } catch (error: any) {
         return NextResponse.json(

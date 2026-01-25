@@ -81,7 +81,7 @@ export class AdminRepositoryPrisma {
         where: { user: whereUser },
         skip,
         take: limit,
-        include: { user: { select: { id: true, name: true, email: true, accountStatus: true } } },
+        include: { user: { select: { id: true, name: true, email: true, accountStatus: true, trustScore: true } } },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.profile.count({ where: { user: whereUser } })
@@ -167,9 +167,41 @@ export class AdminRepositoryPrisma {
   }
 
   // Identity Verification
-  async getPendingVerifications(page = 1, limit = 10) {
+  async getIdentityVerifications(page = 1, limit = 10, status?: string, userId?: string) {
     const skip = (page - 1) * limit;
-    const where: Prisma.VerificationWhereInput = { status: 'PENDING' };
+
+    // --- AUTO-SYNC STEP ---
+    // Ensure all IdentityDocuments have a corresponding Verification record for Admin review
+    const allIdDocs = await prisma.identityDocument.findMany({
+      where: userId ? { userId } : { status: 'PENDING' }, // Sync specifically for user or all pending
+      select: { userId: true, type: true, fileUrl: true, status: true, id: true }
+    });
+
+    for (const doc of allIdDocs) {
+      const exists = await prisma.verification.findFirst({
+        where: { userId: doc.userId, documentUrl: doc.fileUrl }
+      });
+
+      if (!exists) {
+        const verificationType = ['ID_CARD', 'PASSPORT', 'DRIVING_LICENSE'].includes(doc.type) ? 'ID' :
+          doc.type === 'PHOTO' ? 'PHOTO' : 'ID';
+
+        await prisma.verification.create({
+          data: {
+            userId: doc.userId,
+            documentType: verificationType,
+            documentUrl: doc.fileUrl,
+            status: doc.status as any, // Sync status as well
+          }
+        });
+      }
+    }
+    // --- END AUTO-SYNC ---
+
+    const where: Prisma.VerificationWhereInput = {
+      ...(status && status !== 'ALL' ? { status: status as any } : {}),
+      ...(userId ? { userId } : {})
+    };
 
     const [verifications, total] = await Promise.all([
       prisma.verification.findMany({
@@ -177,7 +209,20 @@ export class AdminRepositoryPrisma {
         skip,
         take: limit,
         include: {
-          user: { select: { id: true, name: true, email: true } }
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profile: {
+                select: {
+                  photoUrl: true,
+                  bio: true,
+                  location: true
+                }
+              }
+            }
+          }
         },
         orderBy: { createdAt: 'desc' }
       }),
@@ -208,12 +253,23 @@ export class AdminRepositoryPrisma {
     // If Verified, update User flags based on document type
     if (action === 'VERIFY') {
       const updateData: Prisma.UserUpdateInput = {};
-      if (verification.documentType === 'PHOTO') updateData.photoVerified = true;
+      if (verification.documentType === 'PHOTO') {
+        updateData.photoVerified = true;
+        updateData.trustScore = { increment: 30 };
+      }
       if (verification.documentType === 'ID') {
         updateData.idVerified = true;
         updateData.accountStatus = 'VERIFIED'; // Upgrade account status if ID is verified
+        updateData.trustScore = { increment: 25 };
       }
-      if (verification.documentType === 'PHONE') updateData.phoneVerified = true;
+      if (verification.documentType === 'PHONE') {
+        updateData.phoneVerified = true;
+        updateData.trustScore = { increment: 20 };
+      }
+      if (verification.documentType === 'EMAIL') { // Just in case
+        updateData.emailVerified = new Date();
+        updateData.trustScore = { increment: 20 };
+      }
 
       if (Object.keys(updateData).length > 0) {
         await prisma.user.update({
@@ -267,9 +323,18 @@ export class AdminRepositoryPrisma {
     const updateData: Prisma.UserUpdateInput = {
       accountStatus: 'LIMITED'
     };
-    if (verification.documentType === 'PHOTO') updateData.photoVerified = false;
-    if (verification.documentType === 'ID') updateData.idVerified = false;
-    if (verification.documentType === 'PHONE') updateData.phoneVerified = false;
+    if (verification.documentType === 'PHOTO') {
+      updateData.photoVerified = false;
+      updateData.trustScore = { decrement: 30 };
+    }
+    if (verification.documentType === 'ID') {
+      updateData.idVerified = false;
+      updateData.trustScore = { decrement: 25 };
+    }
+    if (verification.documentType === 'PHONE') {
+      updateData.phoneVerified = false;
+      updateData.trustScore = { decrement: 20 };
+    }
 
     await prisma.user.update({
       where: { id: verification.userId },

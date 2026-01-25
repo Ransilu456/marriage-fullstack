@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Search, CheckCircle, XCircle, MoreHorizontal, User as UserIcon } from 'lucide-react';
+import { Search, CheckCircle, XCircle, MoreHorizontal, User as UserIcon, Shield, Fingerprint } from 'lucide-react';
+import Link from 'next/link';
 
 interface Profile {
     id: string;
     user: {
+        id: string;
         name: string | null;
         email: string | null;
         accountStatus: string;
+        trustScore: number;
     };
     createdAt: string;
     photoUrl: string;
@@ -90,6 +93,7 @@ export default function ProfilesPage() {
                             <tr>
                                 <th className="px-6 py-4 font-semibold text-slate-500 uppercase tracking-wider text-xs">Profile Owner</th>
                                 <th className="px-6 py-4 font-semibold text-slate-500 uppercase tracking-wider text-xs">Created Date</th>
+                                <th className="px-6 py-4 font-semibold text-slate-500 uppercase tracking-wider text-xs">Trust Score</th>
                                 <th className="px-6 py-4 font-semibold text-slate-500 uppercase tracking-wider text-xs">Status</th>
                                 <th className="px-6 py-4 font-semibold text-slate-500 uppercase tracking-wider text-xs text-right">Moderation</th>
                             </tr>
@@ -121,6 +125,17 @@ export default function ProfilesPage() {
                                             {new Date(profile.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full bg-gradient-to-r ${profile.user.trustScore >= 75 ? 'from-amber-400 to-orange-500' : profile.user.trustScore >= 50 ? 'from-emerald-400 to-teal-500' : 'from-slate-400 to-slate-500'} transition-all`}
+                                                        style={{ width: `${profile.user.trustScore}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-slate-500">{profile.user.trustScore}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
                                             {profile.user.accountStatus === 'VERIFIED' ? (
                                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/50 text-emerald-700 border border-emerald-200 shadow-sm shadow-emerald-100">
                                                     <CheckCircle size={12} strokeWidth={2.5} /> Verified
@@ -149,6 +164,13 @@ export default function ProfilesPage() {
                                                         Revoke
                                                     </button>
                                                 )}
+                                                <Link
+                                                    href={`/admin/identity?userId=${profile.user.id}`}
+                                                    className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors group/link"
+                                                    title="Verify Identity Docs"
+                                                >
+                                                    <Fingerprint size={16} className="group-hover/link:scale-110 transition-transform" />
+                                                </Link>
                                                 <button
                                                     onClick={() => openProfile(profile)}
                                                     className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"

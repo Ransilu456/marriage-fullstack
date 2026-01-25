@@ -1,23 +1,22 @@
 {
     "info": {
         "_postman_id": "c1360c84-1d9a-4893-b10e-7eaa7642cc27",
-        "name": "Marriage App API (Full)",
-        "description": "Comprehensive collection for testing all Marriage App API endpoints, including Admin, Guardian, and Interaction features.",
+        "name": "Marriage App API (Master Collection)",
+        "description": "The ultimate Postman collection for the Marriage App. Includes NextAuth v4 flow and all filtered backend routes for Admin and User roles.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
         {
-            "name": "Auth",
+            "name": "01. Auth (NextAuth Flow)",
             "item": [
                 {
-                    "name": "Register (User)",
+                    "name": "Register User",
                     "request": {
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
+                                "value": "application/json"
                             }
                         ],
                         "body": {
@@ -35,78 +34,407 @@
                                 "register"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
-                    "name": "Login",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
+                    "name": "Get CSRF Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "pm.environment.set(\"csrfToken\", jsonData.csrfToken);"
+                                ],
+                                "type": "text/javascript"
                             }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}"
-                        },
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
                         "url": {
-                            "raw": "{{baseUrl}}/api/auth/login",
+                            "raw": "{{baseUrl}}/api/auth/csrf",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
                                 "auth",
-                                "login"
+                                "csrf"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
-                    "name": "Login (Admin)",
+                    "name": "Login (Credentials)",
                     "request": {
                         "method": "POST",
                         "header": [
                             {
                                 "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
+                                "value": "application/json"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"admin_password\"\n}"
+                            "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\",\n    \"csrfToken\": \"{{csrfToken}}\",\n    \"json\": \"true\",\n    \"redirect\": \"false\"\n}"
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/api/auth/login",
+                            "raw": "{{baseUrl}}/api/auth/callback/credentials?json=true",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
                                 "auth",
-                                "login"
+                                "callback",
+                                "credentials"
+                            ],
+                            "query": [
+                                {
+                                    "key": "json",
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Verify Session",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/session",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "session"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "csrfToken",
+                                    "value": "{{csrfToken}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "json",
+                                    "value": "true",
+                                    "type": "text"
+                                }
                             ]
                         },
-                        "description": "Requires manual database setup to set role='ADMIN' for this user."
-                    },
-                    "response": []
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/signout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "signout"
+                            ]
+                        }
+                    }
                 }
             ]
         },
         {
-            "name": "Profile",
+            "name": "02. Admin",
+            "item": [
+                {
+                    "name": "Dashboard & Stats",
+                    "item": [
+                        {
+                            "name": "Get Admin Stats",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/stats",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "stats"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "User Management",
+                    "item": [
+                        {
+                            "name": "Register Admin",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"admin_password\",\n    \"name\": \"System Admin\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/register",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "register"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "List All Users",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/users?page=1&limit=20",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "users"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "20"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Ban User",
+                            "request": {
+                                "method": "POST",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/users/:id/ban",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "users",
+                                        ":id",
+                                        "ban"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "USER_ID"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Profile Moderation",
+                    "item": [
+                        {
+                            "name": "List All Profiles",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/profiles",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "profiles"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Approve Profile",
+                            "request": {
+                                "method": "POST",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/profiles/:id/approve",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "profiles",
+                                        ":id",
+                                        "approve"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "PROFILE_ID"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Verification Hub",
+                    "item": [
+                        {
+                            "name": "List Identity Verifications",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/identity?page=1&limit=10",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "identity"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "page",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "10"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Verify Identity Status",
+                            "request": {
+                                "method": "PATCH",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"verificationId\": \"VERIF_ID\",\n    \"action\": \"VERIFY\",\n    \"notes\": \"Strong documents\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/identity",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "identity"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "List Pending Documents",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/verify",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "verify"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "List Photo Verifications",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/verify/photos",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "verify",
+                                        "photos"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Approve Photo",
+                            "request": {
+                                "method": "POST",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/admin/verify/photos/:id/approve",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "admin",
+                                        "verify",
+                                        "photos",
+                                        ":id",
+                                        "approve"
+                                    ],
+                                    "variable": [
+                                        {
+                                            "key": "id",
+                                            "value": "PHOTO_ID"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "03. Profile (User)",
             "item": [
                 {
                     "name": "Get My Profile",
                     "request": {
                         "method": "GET",
-                        "header": [],
                         "url": {
                             "raw": "{{baseUrl}}/api/profile",
                             "host": [
@@ -117,8 +445,7 @@
                                 "profile"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
                     "name": "Upsert My Profile",
@@ -127,13 +454,12 @@
                         "header": [
                             {
                                 "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
+                                "value": "application/json"
                             }
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"gender\": \"MALE\",\n    \"dateOfBirth\": \"1995-05-15T00:00:00.000Z\",\n    \"bio\": \"Software Engineer looking for a partner.\",\n    \"location\": \"New York, USA\",\n    \"photoUrl\": \"https://example.com/photo.jpg\",\n    \"jobStatus\": \"EMPLOYED\",\n    \"maritalStatus\": \"SINGLE\"\n}"
+                            "raw": "{\n    \"gender\": \"MALE\",\n    \"dateOfBirth\": \"1995-05-15\",\n    \"bio\": \"Finding a partner.\",\n    \"location\": \"Colombo\",\n    \"jobStatus\": \"EMPLOYED\",\n    \"maritalStatus\": \"SINGLE\"\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/profile",
@@ -145,16 +471,14 @@
                                 "profile"
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
                     "name": "Search Profiles",
                     "request": {
                         "method": "GET",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/profiles?minAge=18&maxAge=40&page=1",
+                            "raw": "{{baseUrl}}/api/profiles?page=1&limit=20&minAge=18&maxAge=40",
                             "host": [
                                 "{{baseUrl}}"
                             ],
@@ -164,288 +488,52 @@
                             ],
                             "query": [
                                 {
-                                    "key": "minAge",
-                                    "value": "18"
-                                },
-                                {
-                                    "key": "maxAge",
-                                    "value": "40"
-                                },
-                                {
-                                    "key": "religion",
-                                    "value": "Islam",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "gender",
-                                    "value": "FEMALE",
-                                    "disabled": true
-                                },
-                                {
-                                    "key": "page",
-                                    "value": "1"
-                                }
-                            ]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
-            "name": "Verification (User)",
-            "item": [
-                {
-                    "name": "Upload Document",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"type\": \"PASSPORT\",\n    \"fileUrl\": \"https://example.com/my-passport.pdf\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/verify/upload",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "verify",
-                                "upload"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get My Verification Status",
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/verify/status",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "verify",
-                                "status"
-                            ]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
-            "name": "Admin",
-            "item": [
-                {
-                    "name": "Get Pending Verifications",
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/admin/verify",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "admin",
-                                "verify"
-                            ]
-                        },
-                        "description": "Requires Admin Login"
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Verify/Reject Document",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"documentId\": \"DOCUMENT_ID_FROM_PENDING_LIST\",\n    \"action\": \"VERIFY\",\n    \"reason\": \"Valid document\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/admin/verify",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "admin",
-                                "verify"
-                            ]
-                        },
-                        "description": "Requires Admin Login. Action can be 'VERIFY' or 'REJECT'."
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Register Admin",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "x-admin-secret",
-                                "value": "admin-secret-123",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"email\": \"newadmin@example.com\",\n    \"password\": \"securepass\",\n    \"name\": \"New Admin\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/admin/register",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "admin",
-                                "register"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get All Users",
-                    "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/admin/users?page=1&limit=20",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "admin",
-                                "users"
-                            ],
-                            "query": [
-                                {
                                     "key": "page",
                                     "value": "1"
                                 },
                                 {
                                     "key": "limit",
                                     "value": "20"
+                                },
+                                {
+                                    "key": "minAge",
+                                    "value": "18"
+                                },
+                                {
+                                    "key": "maxAge",
+                                    "value": "40"
                                 }
                             ]
                         }
-                    },
-                    "response": []
+                    }
                 },
                 {
-                    "name": "Get User Details",
+                    "name": "Get User Profile By ID",
                     "request": {
                         "method": "GET",
-                        "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/admin/users/:id",
+                            "raw": "{{baseUrl}}/api/profiles/:userId",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
-                                "admin",
-                                "users",
-                                ":id"
+                                "profiles",
+                                ":userId"
                             ],
                             "variable": [
                                 {
-                                    "key": "id",
-                                    "value": "USER_ID"
+                                    "key": "userId",
+                                    "value": "TARGET_USER_ID"
                                 }
                             ]
                         }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Delete User",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                            "raw": "{{baseUrl}}/api/admin/users/:id",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "admin",
-                                "users",
-                                ":id"
-                            ],
-                            "variable": [
-                                {
-                                    "key": "id",
-                                    "value": "USER_ID"
-                                }
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Send Feedback / Notification",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"userId\": \"USER_ID\",\n    \"message\": \"Please update your profile photo.\",\n    \"type\": \"WARNING\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/admin/feedback",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "admin",
-                                "feedback"
-                            ]
-                        }
-                    },
-                    "response": []
+                    }
                 }
             ]
         },
         {
-            "name": "Interactions",
+            "name": "04. Interactions",
             "item": [
                 {
                     "name": "Interests",
@@ -454,16 +542,9 @@
                             "name": "Send Interest",
                             "request": {
                                 "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json",
-                                        "type": "text"
-                                    }
-                                ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"receiverId\": \"TARGET_USER_ID\",\n    \"message\": \"Hello!\"\n}"
+                                    "raw": "{\n    \"receiverId\": \"TARGET_USER_ID\",\n    \"message\": \"Hi there!\"\n}"
                                 },
                                 "url": {
                                     "raw": "{{baseUrl}}/api/interests",
@@ -475,44 +556,12 @@
                                         "interests"
                                     ]
                                 }
-                            },
-                            "response": []
-                        },
-                        {
-                            "name": "Get Received Interests",
-                            "request": {
-                                "method": "GET",
-                                "header": [],
-                                "url": {
-                                    "raw": "{{baseUrl}}/api/interests?type=received",
-                                    "host": [
-                                        "{{baseUrl}}"
-                                    ],
-                                    "path": [
-                                        "api",
-                                        "interests"
-                                    ],
-                                    "query": [
-                                        {
-                                            "key": "type",
-                                            "value": "received"
-                                        }
-                                    ]
-                                }
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Accept Interest",
                             "request": {
                                 "method": "PATCH",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json",
-                                        "type": "text"
-                                    }
-                                ],
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"action\": \"accept\"\n}"
@@ -534,42 +583,7 @@
                                         }
                                     ]
                                 }
-                            },
-                            "response": []
-                        }
-                    ]
-                },
-                {
-                    "name": "Proposals",
-                    "item": [
-                        {
-                            "name": "Send Proposal",
-                            "request": {
-                                "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json",
-                                        "type": "text"
-                                    }
-                                ],
-                                "body": {
-                                    "mode": "raw",
-                                    "raw": "{\n    \"receiverId\": \"TARGET_USER_ID\",\n    \"message\": \"I would like to propose marriage.\"\n}"
-                                },
-                                "url": {
-                                    "raw": "{{baseUrl}}/api/proposals",
-                                    "host": [
-                                        "{{baseUrl}}"
-                                    ],
-                                    "path": [
-                                        "api",
-                                        "proposals"
-                                    ]
-                                },
-                                "description": "Requires mutual interest/match usually."
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -577,10 +591,9 @@
                     "name": "Matches",
                     "item": [
                         {
-                            "name": "Get All Matches",
+                            "name": "Get My Matches",
                             "request": {
                                 "method": "GET",
-                                "header": [],
                                 "url": {
                                     "raw": "{{baseUrl}}/api/matches",
                                     "host": [
@@ -591,8 +604,7 @@
                                         "matches"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -600,34 +612,9 @@
                     "name": "Favorites",
                     "item": [
                         {
-                            "name": "Get Favorites",
-                            "request": {
-                                "method": "GET",
-                                "header": [],
-                                "url": {
-                                    "raw": "{{baseUrl}}/api/favorites",
-                                    "host": [
-                                        "{{baseUrl}}"
-                                    ],
-                                    "path": [
-                                        "api",
-                                        "favorites"
-                                    ]
-                                }
-                            },
-                            "response": []
-                        },
-                        {
                             "name": "Toggle Favorite",
                             "request": {
                                 "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json",
-                                        "type": "text"
-                                    }
-                                ],
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"favoritedId\": \"TARGET_USER_ID\"\n}"
@@ -642,8 +629,7 @@
                                         "favorites"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 },
@@ -654,13 +640,6 @@
                             "name": "Block User",
                             "request": {
                                 "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json",
-                                        "type": "text"
-                                    }
-                                ],
                                 "body": {
                                     "mode": "raw",
                                     "raw": "{\n    \"targetId\": \"TARGET_USER_ID\",\n    \"action\": \"block\"\n}"
@@ -675,23 +654,15 @@
                                         "blocking"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         },
                         {
                             "name": "Report User",
                             "request": {
                                 "method": "POST",
-                                "header": [
-                                    {
-                                        "key": "Content-Type",
-                                        "value": "application/json",
-                                        "type": "text"
-                                    }
-                                ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n    \"targetId\": \"TARGET_USER_ID\",\n    \"reason\": \"Inappropriate behavior\"\n}"
+                                    "raw": "{\n    \"targetId\": \"TARGET_USER_ID\",\n    \"reason\": \"Scam suspected\"\n}"
                                 },
                                 "url": {
                                     "raw": "{{baseUrl}}/api/reporting",
@@ -703,44 +674,247 @@
                                         "reporting"
                                     ]
                                 }
-                            },
-                            "response": []
+                            }
                         }
                     ]
                 }
             ]
         },
         {
-            "name": "Guardian",
+            "name": "05. Messaging (Chat)",
             "item": [
                 {
-                    "name": "Link Guardian",
+                    "name": "Get Conversation History",
                     "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"guardianEmail\": \"guardian@example.com\"\n}"
-                        },
+                        "method": "GET",
                         "url": {
-                            "raw": "{{baseUrl}}/api/guardian/link",
+                            "raw": "{{baseUrl}}/api/chat/:userId",
                             "host": [
                                 "{{baseUrl}}"
                             ],
                             "path": [
                                 "api",
-                                "guardian",
-                                "link"
+                                "chat",
+                                ":userId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "userId",
+                                    "value": "TARGET_USER_ID"
+                                }
                             ]
                         }
-                    },
-                    "response": []
+                    }
+                },
+                {
+                    "name": "Send Message",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"content\": \"Hello, let's talk!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/chat/:userId",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "chat",
+                                ":userId"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "userId",
+                                    "value": "TARGET_USER_ID"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "06. Verification (Docs & Photos)",
+            "item": [
+                {
+                    "name": "Identity Document Hub",
+                    "item": [
+                        {
+                            "name": "Upload Identity Doc",
+                            "request": {
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"type\": \"PASSPORT\",\n    \"fileUrl\": \"https://example.com/id.pdf\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/verify/upload",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "verify",
+                                        "upload"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Check Verification Status",
+                            "request": {
+                                "method": "GET",
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/verify/status",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "verify",
+                                        "status"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Photo Verification Flow",
+                    "item": [
+                        {
+                            "name": "Upload Profile Photo",
+                            "request": {
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"url\": \"https://example.com/p1.jpg\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/verify/photo/upload",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "verify",
+                                        "photo",
+                                        "upload"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Upload Selfie For Verification",
+                            "request": {
+                                "method": "POST",
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"url\": \"https://example.com/s1.jpg\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/verify/photo/selfie",
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "verify",
+                                        "photo",
+                                        "selfie"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "07. Notifications",
+            "item": [
+                {
+                    "name": "Get Notifications",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/notifications?limit=20",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "20"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Mark Notification as Read",
+                    "request": {
+                        "method": "PATCH",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"notificationId\": \"ID_HERE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/notifications",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "08. System & Utilities",
+            "item": [
+                {
+                    "name": "Delete My Account",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/account",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "account"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Universal File Upload",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{baseUrl}}/api/upload",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "upload"
+                            ]
+                        },
+                        "description": "Supports multipart/form-data for general file uploads."
+                    }
                 }
             ]
         }

@@ -65,15 +65,15 @@ export class ProfileRepositoryPrisma implements IProfileRepository {
         const found = await prisma.profile.findUnique({
             where: { userId },
             include: { user: { select: { accountStatus: true, name: true } } }
-        });
-        return found ? this.toDomain(found, (found as any).user?.accountStatus, (found as any).user?.name) : null;
+        }) as any;
+        return found ? this.toDomain(found, found.user?.accountStatus, found.user?.name) : null;
     }
 
     async findAll(): Promise<Profile[]> {
         const found = await prisma.profile.findMany({
             include: { user: { select: { accountStatus: true, name: true } } }
-        });
-        return found.map(p => this.toDomain(p, (p as any).user?.accountStatus, (p as any).user?.name));
+        }) as any[];
+        return found.map(p => this.toDomain(p, p.user?.accountStatus, p.user?.name));
     }
 
     async findFiltered(filters: {
@@ -138,7 +138,7 @@ export class ProfileRepositoryPrisma implements IProfileRepository {
         };
     }
 
-    private toDomain(p: PrismaProfile, accountStatus?: string, name?: string): Profile {
+    private toDomain(p: any, accountStatus?: string, name?: string): Profile {
         return Profile.create({
             id: p.id,
             userId: p.userId,

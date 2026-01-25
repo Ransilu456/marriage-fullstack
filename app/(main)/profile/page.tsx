@@ -1064,8 +1064,8 @@ export default function ProfilePage() {
                                 <p className="text-xs text-emerald-700 font-medium">Verified on {new Date(userVerification.emailVerified).toLocaleDateString()}</p>
                             </div>
                         ) : (
-                            <button className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-500/20">
-                                Verify Email
+                            <button className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+                                Verify Email Now
                             </button>
                         )}
                     </div>
@@ -1108,11 +1108,11 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Photo Verification */}
-                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white shadow-xl p-8 space-y-6">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white shadow-xl p-8 space-y-6 group hover:shadow-rose-500/10 transition-all duration-500">
                         <div className="flex items-start justify-between">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                                         <Camera className="text-rose-600" size={24} />
                                     </div>
                                     <div>
@@ -1137,10 +1137,11 @@ export default function ProfilePage() {
                         </p>
 
                         <button
-                            disabled={!userVerification.photoVerified}
-                            className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-rose-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => router.push('/verify/photo')}
+                            disabled={userVerification.photoVerified}
+                            className={`w-full py-3.5 rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg ${userVerification.photoVerified ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' : 'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-700 hover:to-rose-600 text-white shadow-rose-500/20 active:scale-95'}`}
                         >
-                            {userVerification.photoVerified ? 'Verified' : 'Coming Soon'}
+                            {userVerification.photoVerified ? 'Verified' : 'Start Photo Verify'}
                         </button>
                     </div>
 
@@ -1175,10 +1176,35 @@ export default function ProfilePage() {
 
                         <button
                             onClick={() => setShowVerificationModal(true)}
-                            className="w-full py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20"
+                            className="w-full py-3.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
                         >
-                            {userVerification.idVerified ? 'View Status' : 'Upload Document'}
+                            {userVerification.idVerified ? (
+                                <>View Document <ArrowRight size={16} /></>
+                            ) : (
+                                <>Upload Document <Plus size={16} /></>
+                            )}
                         </button>
+
+                        {/* Submitted Documents Status */}
+                        {verificationDocs.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recent Activity</p>
+                                {verificationDocs.slice(0, 2).map((doc, idx) => (
+                                    <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`w-2 h-2 rounded-full ${doc.status === 'VERIFIED' ? 'bg-emerald-500' : doc.status === 'REJECTED' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse'}`} />
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-700 capitalize">{doc.type.replace(/_/g, ' ')}</p>
+                                                <p className="text-[10px] text-slate-400">{new Date(doc.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${doc.status === 'VERIFIED' ? 'text-emerald-600 bg-emerald-50' : doc.status === 'REJECTED' ? 'text-rose-600 bg-rose-50' : 'text-amber-600 bg-amber-50'}`}>
+                                            {doc.status}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </section>
 

@@ -1,8 +1,9 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Briefcase, Heart, BookOpen, Ruler, Users, Utensils } from 'lucide-react';
+import { X, MapPin, Briefcase, Heart, BookOpen, Ruler, Users, Utensils, Shield, Fingerprint, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface AdminProfileModalProps {
     isOpen: boolean;
@@ -65,6 +66,29 @@ export default function AdminProfileModal({ isOpen, onClose, profile }: AdminPro
                                         <span>{details.age} years old</span>
                                         <span>•</span>
                                         <span className="flex items-center gap-1"><MapPin size={16} /> {details.location}</span>
+                                    </div>
+
+                                    {/* Trust Score & Verification Quick Links */}
+                                    <div className="flex items-center gap-4 mt-6">
+                                        <div className="flex-1 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Trust Score</span>
+                                                <span className="text-sm font-bold text-slate-900">{user.trustScore}/100</span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full bg-gradient-to-r ${user.trustScore >= 75 ? 'from-amber-400 to-orange-500' : user.trustScore >= 50 ? 'from-emerald-400 to-teal-500' : 'from-slate-400 to-slate-500'} transition-all duration-1000`}
+                                                    style={{ width: `${user.trustScore}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <Link
+                                            href={`/admin/identity?userId=${user.id}`}
+                                            className="h-[72px] px-6 bg-slate-900 hover:bg-rose-600 text-white rounded-2xl flex flex-col items-center justify-center gap-1 transition-all group shadow-lg shadow-slate-200"
+                                        >
+                                            <Fingerprint size={20} className="group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-bold uppercase tracking-tight">Verify ID</span>
+                                        </Link>
                                     </div>
                                 </div>
 

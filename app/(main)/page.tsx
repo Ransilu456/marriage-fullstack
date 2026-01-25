@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowUpRight, Heart, HeartHandshake, ArrowRight, BadgeCheck, Users, ShieldCheck } from 'lucide-react';
-import AuthForm from './components/AuthForm';
+import AuthForm from '../components/AuthForm';
 
 export default function LandingPage() {
   const { data: session } = useSession();

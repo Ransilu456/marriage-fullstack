@@ -51,17 +51,12 @@ export default function RootLayout({
       >
         <AuthProvider>
           <NotificationProvider>
-
             <MatchProvider>
               <ProfileGuard>
-                <Navbar />
-                <main className="min-h-screen pt-20">
-                  {children}
-                </main>
+                {children}
               </ProfileGuard>
             </MatchProvider>
           </NotificationProvider>
-
         </AuthProvider>
       </body>
     </html>

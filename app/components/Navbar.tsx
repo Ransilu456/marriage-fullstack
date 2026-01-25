@@ -58,6 +58,16 @@ export default function Navbar() {
 
                     {session ? (
                         <div className="flex items-center gap-6">
+                            {/* Admin Dashboard Link */}
+                            {session?.user?.role === 'ADMIN' && (
+                                <NextLink
+                                    href="/admin"
+                                    className={`text-xs font-medium transition-all hover:text-rose-600 ${pathname?.startsWith('/admin') ? 'text-rose-600 font-bold' : 'text-slate-500'
+                                        }`}
+                                >
+                                    Dashboard
+                                </NextLink>
+                            )}
                             <NotificationBell />
                             <NextLink
                                 href="/profile"
@@ -127,6 +137,15 @@ export default function Navbar() {
                             ))}
                             {session ? (
                                 <>
+                                    {session?.user?.role === 'ADMIN' && (
+                                        <NextLink
+                                            href="/admin"
+                                            onClick={() => setIsOpen(false)}
+                                            className="text-sm font-medium text-slate-500 hover:text-rose-600"
+                                        >
+                                            Admin Dashboard
+                                        </NextLink>
+                                    )}
                                     <NextLink
                                         href="/profile"
                                         onClick={() => setIsOpen(false)}

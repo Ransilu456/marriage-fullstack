@@ -1,90 +1,194 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, ShieldCheck, FileText } from 'lucide-react';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  FileText,
+  Shield,
+  Settings,
+  LogOut,
+  ChevronDown,
+  UserCircle
+} from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
-const routes = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-  { label: 'Users', icon: Users, href: '/admin/users' },
-  { label: 'Verifications', icon: ShieldCheck, href: '/admin/verify' },
-  { label: 'Reports', icon: FileText, href: '/admin/reports' },
+interface AdminSidebarProps {
+  collapsed: boolean;
+  hovered: boolean;
+  setHovered: (hovered: boolean) => void;
+}
+
+const menuItems = [
+  { name: 'Overview', href: '/admin', icon: LayoutDashboard },
+  { name: 'User Management', href: '/admin/users', icon: Users },
+  { name: 'Verifications', href: '/admin/profiles', icon: UserCheck },
+  { name: 'Proposals', href: '/admin/proposals', icon: FileText },
+  { name: 'Reports', href: '/admin/reports', icon: Shield },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ collapsed, hovered, setHovered }: AdminSidebarProps) {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const sidebarWidth = collapsed && !hovered ? "80px" : "250px";
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      // @ts-ignore - simplistic type check for now
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node))
+        setUserMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onClick);
+    return () => document.removeEventListener("pointerdown", onClick);
+  }, []);
 
   return (
-    <>
-      {/* Overlay for mobile */}
-      {open && (
+    <motion.aside
+      initial={false}
+      animate={{ width: sidebarWidth }}
+      transition={{ type: "spring", stiffness: 400, damping: 40 }}
+      onMouseEnter={() => collapsed && setHovered(true)}
+      onMouseLeave={() => collapsed && setHovered(false)}
+      className="fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-[#FAFAFA] border-neutral-200 transition-colors duration-300"
+    >
+      <div className="h-16 flex items-center px-4 border-b border-neutral-200">
         <div
-          className="fixed inset-0 z-40 bg-black/30 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
+          className={`flex items-center gap-3 overflow-hidden ${collapsed && !hovered ? "justify-center w-full px-0" : ""
+            }`}
+        >
+          <div className="h-8 w-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-neutral-500/20">
+            <span className="font-bold text-lg tracking-tighter">E</span>
+          </div>
+          {(!collapsed || hovered) && (
+            <span className="font-semibold text-sm tracking-tight text-neutral-900 whitespace-nowrap opacity-100 transition-opacity duration-200">
+              Eternity Admin
+            </span>
+          )}
+        </div>
+      </div>
 
-      <aside
-        className={`fixed left-0 top-20 bottom-0 h-[calc(100vh-5rem)] w-72 bg-white border-r border-slate-200 z-50 transition-transform duration-200 lg:translate-x-0 ${
-          open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } overflow-y-auto`}
-      >
-        <div className="flex flex-col gap-4 p-6 border-b border-slate-100 relative">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 relative rounded-full overflow-hidden border-2 border-rose-200 shadow">
-              <Image src="/avatar-admin.png" alt="Admin" fill sizes="48px" className="object-cover" />
-            </div>
-            <div>
-              <div className="font-bold text-lg text-slate-900">Admin User</div>
-              <div className="text-xs text-slate-400 font-semibold">Administrator</div>
-            </div>
+      {/* Navigation Links */}
+      <div className="flex-1 flex flex-col gap-1 p-3 overflow-y-auto">
+        {(!collapsed || hovered) && (
+          <p className="px-2 mt-2 mb-1 text-[10px] font-medium text-neutral-400 uppercase tracking-widest">
+            Platform
+          </p>
+        )}
+
+        {menuItems.map((item) => {
+          const IconComponent = item.icon;
+          const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`group flex items-center gap-3 px-2.5 py-2 rounded-lg mb-0.5 transition-all duration-200 ${isActive
+                ? "bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] text-neutral-900 border border-neutral-200/50 border-l-2 border-rose-500"
+                : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 border-transparent"
+                }`}
+            >
+              <IconComponent size={18} strokeWidth={1.5} />
+              {(!collapsed || hovered) && (
+                <span className="text-xs font-medium tracking-tight whitespace-nowrap">
+                  {item.name}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+
+        <div className="mt-auto">
+          {(!collapsed || hovered) && (
+            <p className="px-2 mb-1 text-[10px] font-medium text-neutral-400 uppercase tracking-widest">
+              Account
+            </p>
+          )}
+          <Link
+            href="/admin/settings"
+            className="group flex items-center gap-3 px-2.5 py-2 rounded-lg mb-0.5 transition-all duration-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100"
+          >
+            <UserCircle size={18} strokeWidth={1.5} />
+            {(!collapsed || hovered) && (
+              <span className="text-xs font-medium tracking-tight whitespace-nowrap">
+                My Profile
+              </span>
+            )}
+          </Link>
+        </div>
+      </div>
+
+      {/* User Profile Footer */}
+      <div className="p-3 border-t border-neutral-200">
+        <div
+          className={`relative flex items-center gap-3 p-2 rounded-lg hover:bg-white hover:shadow-sm border border-transparent hover:border-neutral-200 transition-all cursor-pointer group ${collapsed && !hovered ? "justify-center" : ""
+            }`}
+          onClick={() => setUserMenuOpen(!userMenuOpen)}
+          ref={userMenuRef}
+        >
+          <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-rose-100 to-white border border-neutral-200 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-rose-600">
+            {session?.user?.name?.[0] || "A"}
           </div>
 
-          <button
-            className="lg:hidden absolute top-6 right-6 text-slate-400 hover:text-rose-600"
-            onClick={() => setOpen(false)}
-            aria-label="Close sidebar"
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
+          {(!collapsed || hovered) && (
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-xs font-medium text-neutral-900 truncate">
+                {session?.user?.name || "Admin"}
+              </span>
+              <span className="text-[10px] text-neutral-400 truncate">
+                {session?.user?.email || "admin@eternity.com"}
+              </span>
+            </div>
+          )}
 
-        <nav className="px-4 pt-6 space-y-2">
-          <div className="text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Main</div>
-          {routes.map(r => {
-            const active = pathname === r.href;
-            return (
-              <Link
-                key={r.href}
-                href={r.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all ${
-                  active
-                    ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg'
-                    : 'text-slate-600 hover:bg-rose-50 hover:text-rose-600'
-                }`}
-                onClick={() => setOpen(false)}
+          {(!collapsed || hovered) && (
+            <ChevronDown size={14} className="ml-auto text-neutral-400 group-hover:text-neutral-600" />
+          )}
+
+          {/* Dropdown Menu */}
+          <AnimatePresence>
+            {userMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: -12, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="absolute bottom-full left-0 w-full mb-2 rounded-xl bg-white border border-neutral-200 shadow-xl shadow-black/5 overflow-hidden z-50 p-1"
+                style={{
+                  minWidth: collapsed && !hovered ? "180px" : "100%",
+                  left: collapsed && !hovered ? "3.5rem" : "0",
+                }}
               >
-                <r.icon size={22} />
-                {r.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="mt-auto p-6 text-xs text-slate-400">&copy; {new Date().getFullYear()} Marrage Admin</div>
-      </aside>
-
-      {/* Hamburger for mobile */}
-      <button
-        className="fixed top-4 left-4 z-50 p-2 bg-white border border-slate-200 rounded-lg shadow-md text-slate-600 lg:hidden"
-        onClick={() => setOpen(true)}
-        aria-label="Open sidebar"
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
-    </>
+                <Link
+                  href="/"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors mb-1"
+                >
+                  <LayoutDashboard size={14} />
+                  Main Site
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut({ callbackUrl: '/' });
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <LogOut size={14} />
+                  Log Out
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.aside>
   );
 }

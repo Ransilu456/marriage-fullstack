@@ -1,11 +1,5 @@
-'use client';
+import AdminLayoutComponent from '@/app/components/admin/layout/AdminLayout';
 
-import AdminLayout from '@/app/components/admin/layout/AdminLayout';
-
-export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-indigo-50">
-			<AdminLayout>{children}</AdminLayout>
-		</div>
-	);
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return <AdminLayoutComponent>{children}</AdminLayoutComponent>;
 }

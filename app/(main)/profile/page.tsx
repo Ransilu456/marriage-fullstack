@@ -151,6 +151,23 @@ export default function ProfilePage() {
         }
     };
 
+    const handleRequestEmailVerification = async () => {
+        try {
+            setSubmitting(true);
+            const res = await fetch('/api/auth/verify-email', { method: 'POST' });
+            if (res.ok) {
+                router.push('/auth/verify-email');
+            } else {
+                const data = await res.json();
+                setGeneralError(data.error || 'Failed to send verification email');
+            }
+        } catch (error) {
+            setGeneralError('Connection error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const handleSubmit = async () => {
         setIsSaving(true);
         setErrors({});
@@ -346,6 +363,34 @@ export default function ProfilePage() {
                                 </div>
                             </motion.button>
                         ))}
+                    </div>
+                </section>
+            )}
+
+            {/* Email Verification Nudge */}
+            {!userVerification.emailVerified && (
+                <section className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-white/20 transition-all duration-700" />
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                        <div className="flex items-center gap-4 text-center md:text-left">
+                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30">
+                                <Sparkles size={24} />
+                            </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-center md:justify-start gap-2">
+                                    <h3 className="text-xl font-bold font-serif">Verify Your Email</h3>
+                                    <span className="px-2 py-0.5 bg-emerald-500 text-white rounded-full text-[9px] font-bold uppercase tracking-widest">+20 Points</span>
+                                </div>
+                                <p className="text-white/80 text-xs">Confirm your email address to ensure account security and get trust points.</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleRequestEmailVerification}
+                            disabled={submitting}
+                            className="px-8 py-3 bg-white text-blue-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all shadow-lg active:scale-95"
+                        >
+                            {submitting ? 'Sending...' : 'Verify Email Now'}
+                        </button>
                     </div>
                 </section>
             )}
@@ -1064,8 +1109,12 @@ export default function ProfilePage() {
                                 <p className="text-xs text-emerald-700 font-medium">Verified on {new Date(userVerification.emailVerified).toLocaleDateString()}</p>
                             </div>
                         ) : (
-                            <button className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-500/20 active:scale-95">
-                                Verify Email Now
+                            <button
+                                onClick={handleRequestEmailVerification}
+                                disabled={submitting}
+                                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+                            >
+                                {submitting ? 'Sending...' : 'Verify Email Now'}
                             </button>
                         )}
                     </div>

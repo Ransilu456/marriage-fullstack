@@ -1,12 +1,11 @@
-
 import { IInterestRepository } from '../interfaces/IInterestRepository';
 import { IProfileRepository } from '../interfaces/ProfileRepository';
 import { Interest } from '../entities/Interest';
 import { IMatchRepository } from '../interfaces/IMatchRepository';
-import { IUserRepository } from '../interfaces/UserRepository';
 import { UserRole } from '../entities/User';
 import { IAuditLogRepository } from '../interfaces/IAuditLogRepository';
 import { AuditLog } from '../entities/AuditLog';
+import { INotificationRepository } from '../interfaces/NotificationRepository';
 
 export interface SendInterestInput {
     senderId: string;
@@ -22,7 +21,8 @@ export class SendInterestUseCase {
         private interestRepo: IInterestRepository,
         private profileRepo: IProfileRepository,
         private matchRepo: IMatchRepository,
-        private auditLogRepo: IAuditLogRepository
+        private auditLogRepo: IAuditLogRepository,
+        private notificationRepo: INotificationRepository
     ) { }
 
     async execute(input: SendInterestInput): Promise<Interest> {
@@ -73,6 +73,14 @@ export class SendInterestUseCase {
         });
 
         await this.interestRepo.save(interest);
+
+        // --- Notifications ---
+        await this.notificationRepo.save({
+            userId: input.receiverId,
+            type: 'NEW_INTEREST',
+            title: 'New Interest! ✨',
+            message: `User ${input.senderId} has expressed interest in your profile.`
+        });
 
         // 7. Audit Log
         await this.auditLogRepo.save(AuditLog.create({

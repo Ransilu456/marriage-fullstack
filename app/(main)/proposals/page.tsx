@@ -24,45 +24,73 @@ export default function ProposalsPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const { showMatch } = useMatch();
-    const [received, setReceived] = useState<Interest[]>([]);
-    const [sent, setSent] = useState<Interest[]>([]);
+    const [received, setReceived] = useState<any[]>([]);
+    const [sent, setSent] = useState<any[]>([]);
+    const [proposals, setProposals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received');
+    const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'formal'>('received');
 
     useEffect(() => {
         if (status === 'unauthenticated') {
             router.push('/auth/login');
         } else if (status === 'authenticated') {
-            fetchInterests();
+            fetchData();
         }
     }, [status]);
 
-    const fetchInterests = async () => {
+    const fetchData = async () => {
         try {
-            const [receivedRes, sentRes] = await Promise.all([
+            const [receivedRes, sentRes, formalRes] = await Promise.all([
                 fetch('/api/interests?type=received'),
-                fetch('/api/interests?type=sent')
+                fetch('/api/interests?type=sent'),
+                fetch('/api/proposals')
             ]);
 
-            if (receivedRes.ok && sentRes.ok) {
-                const receivedData = await receivedRes.json();
-                const sentData = await sentRes.json();
-                setReceived(receivedData.interests || []);
-                setSent(sentData.interests || []);
+            if (receivedRes.ok) {
+                const data = await receivedRes.json();
+                setReceived(data.interests || []);
+            }
+            if (sentRes.ok) {
+                const data = await sentRes.json();
+                setSent(data.interests || []);
+            }
+            if (formalRes.ok) {
+                const data = await formalRes.json();
+                setProposals(data.proposals || []);
             }
         } catch (error) {
-            console.error('Error fetching interests:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAction = async (interestId: string, status: 'ACCEPTED' | 'DECLINED') => {
+    const handleFormalAction = async (proposalId: string, answer: 'YES' | 'NO') => {
         try {
-            const res = await fetch('/api/interests', {
+            const res = await fetch(`/api/proposals/${proposalId}/answer`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ interestId, status })
+                body: JSON.stringify({ answer })
+            });
+
+            if (res.ok) {
+                if (answer === 'YES') {
+                    router.push(`/matches/${proposalId}`);
+                }
+                fetchData();
+            }
+        } catch (error) {
+            console.error('Action error:', error);
+        }
+    };
+
+    const handleAction = async (interestId: string, status: 'ACCEPTED' | 'DECLINED') => {
+        try {
+            const action = status === 'ACCEPTED' ? 'accept' : 'reject';
+            const res = await fetch(`/api/interests/${interestId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action })
             });
 
             if (res.ok) {
@@ -74,7 +102,7 @@ export default function ProposalsPage() {
                         proposalId: interestId
                     });
                 }
-                fetchInterests();
+                fetchData();
             }
         } catch (error) {
             console.error('Action error:', error);
@@ -87,7 +115,7 @@ export default function ProposalsPage() {
         </div>
     );
 
-    const currentList = activeTab === 'received' ? received : sent;
+    const currentList = activeTab === 'received' ? received : (activeTab === 'sent' ? sent : proposals);
 
     return (
         <div className="bg-slate-50 min-h-screen pb-32 pt-24">
@@ -123,6 +151,16 @@ export default function ProposalsPage() {
                             <Send size={16} />
                             Sent {sent.filter(i => i.status === 'PENDING').length > 0 && `(${sent.filter(i => i.status === 'PENDING').length})`}
                         </button>
+                        <button
+                            onClick={() => setActiveTab('formal')}
+                            className={`px-8 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'formal'
+                                ? 'bg-slate-900 text-white shadow-md'
+                                : 'text-slate-400 hover:text-slate-600'
+                                }`}
+                        >
+                            <Sparkles size={16} />
+                            Formal {proposals.filter(p => p.answer === 'PENDING').length > 0 && `(${proposals.filter(p => p.answer === 'PENDING').length})`}
+                        </button>
                     </div>
                 </div>
 
@@ -153,7 +191,7 @@ export default function ProposalsPage() {
                                     <div className="relative">
                                         <div className="w-20 h-20 rounded-2xl overflow-hidden ring-4 ring-slate-50 shadow-sm">
                                             <img
-                                                src={(activeTab === 'received' ? interest.senderPhoto : interest.receiverPhoto) || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&h=300"}
+                                                src={(activeTab === 'received' ? interest.senderPhoto || interest.proposer?.profile?.photoUrl : (activeTab === 'formal' ? (interest.proposerId === session?.user?.id ? interest.recipient?.profile?.photoUrl : interest.proposer?.profile?.photoUrl) : interest.receiverPhoto)) || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&h=300"}
                                                 className="w-full h-full object-cover"
                                                 alt="User"
                                             />
@@ -166,16 +204,16 @@ export default function ProposalsPage() {
                                     <div className="flex-1 text-center md:text-left space-y-2">
                                         <div className="space-y-1">
                                             <h3 className="text-xl font-serif font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
-                                                {activeTab === 'received' ? interest.senderName : interest.receiverName}
+                                                {activeTab === 'received' ? interest.senderName || interest.proposer?.name : (activeTab === 'formal' ? (interest.proposerId === session?.user?.id ? interest.recipient?.name : interest.proposer?.name) : interest.receiverName)}
                                             </h3>
                                             <div className="flex items-center justify-center md:justify-start gap-4">
                                                 <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                                     <Clock size={12} /> {new Date(interest.createdAt).toLocaleDateString()}
                                                 </span>
-                                                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${interest.status === 'ACCEPTED' ? 'bg-emerald-50 text-emerald-600' :
-                                                    interest.status === 'DECLINED' ? 'bg-slate-50 text-slate-400' : 'bg-rose-50 text-rose-600'
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest ${(interest.status === 'ACCEPTED' || interest.answer === 'YES') ? 'bg-emerald-50 text-emerald-600' :
+                                                    (interest.status === 'DECLINED' || interest.answer === 'NO') ? 'bg-slate-50 text-slate-400' : 'bg-rose-50 text-rose-600'
                                                     }`}>
-                                                    {interest.status}
+                                                    {interest.status || interest.answer}
                                                 </span>
                                             </div>
                                         </div>
@@ -200,13 +238,46 @@ export default function ProposalsPage() {
                                                     Decline
                                                 </button>
                                             </>
+                                        ) : activeTab === 'formal' && interest.recipientId === session?.user?.id && interest.answer === 'PENDING' ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handleFormalAction(interest.id, 'YES')}
+                                                    className="flex-1 sm:flex-none px-6 py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-md active:scale-95"
+                                                >
+                                                    Accept Proposal
+                                                </button>
+                                                <button
+                                                    onClick={() => handleFormalAction(interest.id, 'NO')}
+                                                    className="flex-1 sm:flex-none px-6 py-3 bg-rose-50 text-rose-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-200"
+                                                >
+                                                    Decline
+                                                </button>
+                                            </>
+                                        ) : interest.answer === 'YES' || (activeTab !== 'formal' && interest.status === 'ACCEPTED') ? (
+                                            <div className="flex gap-2">
+                                                {activeTab === 'formal' && (
+                                                    <button
+                                                        onClick={() => router.push(`/matches/${interest.id}`)}
+                                                        className="px-6 py-3 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-emerald-100 transition-all border border-emerald-200"
+                                                    >
+                                                        View Match
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => router.push(`/chat/${activeTab === 'received' ? interest.senderId : (activeTab === 'formal' ? (interest.proposerId === session?.user?.id ? interest.recipientId : interest.proposerId) : interest.receiverId)}`)}
+                                                    className="px-6 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-rose-600 transition-all shadow-md flex items-center justify-center gap-2"
+                                                >
+                                                    <MessageCircle size={14} />
+                                                    Message
+                                                </button>
+                                            </div>
                                         ) : (
                                             <button
                                                 onClick={() => router.push(`/chat/${activeTab === 'received' ? interest.senderId : interest.receiverId}`)}
                                                 className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-rose-600 transition-all shadow-md flex items-center justify-center gap-2"
                                             >
                                                 <MessageCircle size={14} />
-                                                {interest.status === 'ACCEPTED' ? 'Message' : 'View'}
+                                                View
                                             </button>
                                         )}
                                     </div>

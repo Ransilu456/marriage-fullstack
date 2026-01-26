@@ -6,6 +6,7 @@ import { InterestRepositoryPrisma } from '@/src/infrastructure/db/InterestReposi
 import { MatchRepositoryPrisma } from '@/src/infrastructure/db/MatchRepositoryPrisma';
 import { UserRepositoryPrisma } from '@/src/infrastructure/db/UserRepositoryPrisma';
 import { AuditLogRepositoryPrisma } from '@/src/infrastructure/db/AuditLogRepositoryPrisma';
+import { NotificationRepositoryPrisma } from '@/src/infrastructure/db/NotificationRepositoryPrisma';
 
 export async function PATCH(
     request: Request,
@@ -24,9 +25,10 @@ export async function PATCH(
         const matchRepo = new MatchRepositoryPrisma();
         const userRepo = new UserRepositoryPrisma();
         const auditLogRepo = new AuditLogRepositoryPrisma();
+        const notificationRepo = new NotificationRepositoryPrisma();
 
         if (action === 'accept') {
-            const useCase = new AcceptInterestUseCase(interestRepo, matchRepo, auditLogRepo);
+            const useCase = new AcceptInterestUseCase(interestRepo, matchRepo, auditLogRepo, notificationRepo);
             const match = await useCase.execute({
                 interestId: id,
                 recipientId: session.userId

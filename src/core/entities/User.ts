@@ -80,6 +80,17 @@ export class User {
         return this.props.accountStatus !== AccountStatus.LIMITED;
     }
 
+    verifyEmail(): void {
+        if (!this.props.emailVerified) {
+            this.props.emailVerified = true;
+            this.rewardTrustPoints(20);
+        }
+    }
+
+    rewardTrustPoints(points: number): void {
+        this.props.trustScore += points;
+    }
+
     toObject() {
         return {
             ...this.props

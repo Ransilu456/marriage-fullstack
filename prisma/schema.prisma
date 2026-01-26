@@ -82,6 +82,8 @@ model User {
     favoritedBy       Favorite[]         @relation("FavoritedByUser")
     identityDocuments IdentityDocument[]
     notifications     Notification[]
+    proposalsSent     Proposal[]         @relation("ProposalsSent")
+    proposalsReceived Proposal[]         @relation("ProposalsReceived")
 
     @@map("users")
 }
@@ -287,4 +289,19 @@ model Notification {
     createdAt DateTime @default(now())
 
     @@map("notifications")
+}
+
+model Proposal {
+    id            String   @id @default(cuid())
+    proposerId    String
+    proposer      User     @relation("ProposalsSent", fields: [proposerId], references: [id], onDelete: Cascade)
+    recipientId   String
+    recipient     User     @relation("ProposalsReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+    answer        String   @default("PENDING") // YES, NO, PENDING
+    message       String?
+    adminNotified Boolean  @default(false)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    @@map("proposals")
 }

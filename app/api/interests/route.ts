@@ -6,6 +6,7 @@ import { InterestRepositoryPrisma } from '@/src/infrastructure/db/InterestReposi
 import { ProfileRepositoryPrisma } from '@/src/infrastructure/db/ProfileRepositoryPrisma';
 import { MatchRepositoryPrisma } from '@/src/infrastructure/db/MatchRepositoryPrisma';
 import { AuditLogRepositoryPrisma } from '@/src/infrastructure/db/AuditLogRepositoryPrisma';
+import { NotificationRepositoryPrisma } from '@/src/infrastructure/db/NotificationRepositoryPrisma';
 
 export async function GET(request: Request) {
     try {
@@ -48,7 +49,8 @@ export async function POST(request: Request) {
         const profileRepo = new ProfileRepositoryPrisma();
         const matchRepo = new MatchRepositoryPrisma();
         const auditLogRepo = new AuditLogRepositoryPrisma();
-        const useCase = new SendInterestUseCase(interestRepo, profileRepo, matchRepo, auditLogRepo);
+        const notificationRepo = new NotificationRepositoryPrisma();
+        const useCase = new SendInterestUseCase(interestRepo, profileRepo, matchRepo, auditLogRepo, notificationRepo);
 
         const interest = await useCase.execute({
             senderId: session.userId,

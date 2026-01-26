@@ -17,4 +17,9 @@ export interface IEmailService {
      * Send notification when proposal is declined (optional)
      */
     sendProposalDeclined?(proposal: Proposal): Promise<void>;
+
+    /**
+     * Send email verification code
+     */
+    sendEmailVerification(email: string, token: string): Promise<void>;
 }

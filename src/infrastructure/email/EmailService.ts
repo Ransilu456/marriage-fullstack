@@ -48,6 +48,18 @@ export class MockEmailService implements IEmailService {
         }
         console.log('━'.repeat(50));
     }
+
+    async sendEmailVerification(email: string, token: string): Promise<void> {
+        console.log('📧 [MOCK EMAIL] Verification Code');
+        console.log('━'.repeat(50));
+        console.log(`To: ${email}`);
+        console.log(`Subject: Verify your email - Eternity Matrimonial`);
+        console.log('');
+        console.log(`Your verification code is: ${token}`);
+        console.log('');
+        console.log('Use this code to earn +20 trust points!');
+        console.log('━'.repeat(50));
+    }
 }
 
 /**
@@ -91,6 +103,12 @@ export class RealEmailService implements IEmailService {
         // Implement similar to sendProposalAccepted
         const mockService = new MockEmailService();
         await mockService.sendProposalDeclined(proposal);
+    }
+
+    async sendEmailVerification(email: string, token: string): Promise<void> {
+        // In production, use your email provider here
+        const mockService = new MockEmailService();
+        await mockService.sendEmailVerification(email, token);
     }
 }
 

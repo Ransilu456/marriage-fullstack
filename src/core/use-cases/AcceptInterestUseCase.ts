@@ -1,10 +1,10 @@
-
 import { IInterestRepository } from '../interfaces/IInterestRepository';
 import { IMatchRepository } from '../interfaces/IMatchRepository';
 import { Match } from '../entities/Match';
 import { InterestStatus } from '../entities/Interest';
 import { IAuditLogRepository } from '../interfaces/IAuditLogRepository';
 import { AuditLog } from '../entities/AuditLog';
+import { INotificationRepository } from '../interfaces/NotificationRepository';
 
 export interface AcceptInterestInput {
     interestId: string;
@@ -15,7 +15,8 @@ export class AcceptInterestUseCase {
     constructor(
         private interestRepo: IInterestRepository,
         private matchRepo: IMatchRepository,
-        private auditLogRepo: IAuditLogRepository
+        private auditLogRepo: IAuditLogRepository,
+        private notificationRepo: INotificationRepository
     ) { }
 
     async execute(input: AcceptInterestInput): Promise<Match> {
@@ -45,6 +46,14 @@ export class AcceptInterestUseCase {
         });
 
         await this.matchRepo.save(match);
+
+        // --- Notifications ---
+        await this.notificationRepo.save({
+            userId: interest.senderId,
+            type: 'INTEREST_ACCEPTED',
+            title: 'Interest Accepted! ❤️',
+            message: `User ${interest.receiverId} has accepted your interest. You can now start chatting.`
+        });
 
         // 5. Audit Log
         await this.auditLogRepo.save(AuditLog.create({

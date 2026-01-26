@@ -58,14 +58,29 @@ export default function UserProfilePage() {
     const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
     const [interestMessage, setInterestMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
-    const [hasInterest, setHasInterest] = useState(false);
+    const [interactionStatus, setInteractionStatus] = useState<any>(null);
+    const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+    const [proposalMessage, setProposalMessage] = useState("");
 
     useEffect(() => {
         if (userId && status === 'authenticated') {
             fetchProfile();
             checkFavoriteStatus();
+            fetchInteractionStatus();
         }
     }, [userId, status]);
+
+    const fetchInteractionStatus = async () => {
+        try {
+            const res = await fetch(`/api/interactions/${userId}/status`);
+            const data = await res.json();
+            if (data.success) {
+                setInteractionStatus(data.status);
+            }
+        } catch (error) {
+            console.error('Error fetching interaction status:', error);
+        }
+    };
 
     const fetchProfile = async () => {
         try {
@@ -123,10 +138,33 @@ export default function UserProfilePage() {
             if (res.ok) {
                 setIsInterestModalOpen(false);
                 setInterestMessage("");
-                setHasInterest(true);
+                fetchInteractionStatus();
             }
         } catch (error) {
             console.error('Error sending interest:', error);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleSendProposal = async () => {
+        setIsSending(true);
+        try {
+            const res = await fetch('/api/proposals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    receiverId: userId,
+                    message: proposalMessage
+                })
+            });
+            if (res.ok) {
+                setIsProposalModalOpen(false);
+                setProposalMessage("");
+                fetchInteractionStatus();
+            }
+        } catch (error) {
+            console.error('Error sending proposal:', error);
         } finally {
             setIsSending(false);
         }
@@ -211,14 +249,44 @@ export default function UserProfilePage() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                            <button
-                                onClick={() => setIsInterestModalOpen(true)}
-                                disabled={hasInterest}
-                                className="flex-1 bg-slate-900 text-white px-8 py-4.5 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-rose-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
-                            >
-                                <HeartHandshake size={18} />
-                                {hasInterest ? 'Interest Sent' : 'Express Interest'}
-                            </button>
+                            {interactionStatus?.isMatched ? (
+                                interactionStatus?.hasProposal ? (
+                                    interactionStatus?.proposalStatus === 'YES' ? (
+                                        <button
+                                            onClick={() => router.push(`/matches/${interactionStatus.proposalId}`)}
+                                            className="flex-1 bg-emerald-600 text-white px-8 py-4.5 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-emerald-700 transition-all flex items-center justify-center gap-3 active:scale-95"
+                                        >
+                                            <Sparkles size={18} />
+                                            View Match Celebration
+                                        </button>
+                                    ) : (
+                                        <button
+                                            disabled
+                                            className="flex-1 bg-slate-200 text-slate-500 px-8 py-4.5 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 cursor-not-allowed"
+                                        >
+                                            <Sparkles size={18} />
+                                            Proposal {interactionStatus.proposalStatus === 'PENDING' ? 'Pending' : 'Declined'}
+                                        </button>
+                                    )
+                                ) : (
+                                    <button
+                                        onClick={() => setIsProposalModalOpen(true)}
+                                        className="flex-1 bg-gradient-to-r from-rose-600 to-rose-500 text-white px-8 py-4.5 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:from-rose-700 hover:to-rose-600 transition-all flex items-center justify-center gap-3 active:scale-95 animate-pulse"
+                                    >
+                                        <Heart size={18} className="fill-current" />
+                                        Send Formal Proposal
+                                    </button>
+                                )
+                            ) : (
+                                <button
+                                    onClick={() => setIsInterestModalOpen(true)}
+                                    disabled={interactionStatus?.hasInterest}
+                                    className="flex-1 bg-slate-900 text-white px-8 py-4.5 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-rose-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                                >
+                                    <HeartHandshake size={18} />
+                                    {interactionStatus?.hasInterest ? 'Interest Sent' : 'Express Interest'}
+                                </button>
+                            )}
                             <Link
                                 href={`/chat/${userId}`}
                                 className="px-8 py-4.5 rounded-2xl bg-white border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center justify-center gap-3 shadow-sm active:scale-95"
@@ -362,6 +430,62 @@ export default function UserProfilePage() {
                                 >
                                     {isSending ? <Loader2 className="animate-spin" size={18} /> : (
                                         <>Send Proposal <ArrowRight size={16} /></>
+                                    )}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Formal Proposal Modal */}
+            <AnimatePresence>
+                {isProposalModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isSending && setIsProposalModalOpen(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative bg-white w-full max-w-lg rounded-[3rem] p-10 shadow-2xl space-y-8"
+                        >
+                            <button onClick={() => setIsProposalModalOpen(false)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-600">
+                                <X size={24} />
+                            </button>
+                            <div className="text-center space-y-4">
+                                <div className="w-20 h-20 bg-rose-500 rounded-[2rem] flex items-center justify-center mx-auto mb-2 shadow-lg shadow-rose-500/20">
+                                    <Heart className="text-white fill-current" size={32} />
+                                </div>
+                                <h3 className="text-3xl font-serif text-slate-900 font-bold tracking-tight">Formal Proposal</h3>
+                                <p className="text-sm text-slate-500 leading-relaxed px-4">
+                                    This is a serious step. Express your commitment and intentions to {profile.name} through a formal marriage proposal.
+                                </p>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Your Message of Intent</label>
+                                    <textarea
+                                        value={proposalMessage}
+                                        onChange={(e) => setProposalMessage(e.target.value)}
+                                        className="w-full h-40 bg-slate-50 border border-slate-200 rounded-2xl p-6 text-sm outline-none focus:border-rose-500 transition-all resize-none shadow-inner"
+                                        placeholder="I have thought deeply and would like to formally propose marriage..."
+                                        disabled={isSending}
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleSendProposal}
+                                    disabled={isSending || !proposalMessage.trim()}
+                                    className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/20 hover:bg-rose-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                                >
+                                    {isSending ? <Loader2 className="animate-spin" size={18} /> : (
+                                        <>Send Formal Proposal <Sparkles size={16} /></>
                                     )}
                                 </button>
                             </div>

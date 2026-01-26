@@ -129,11 +129,12 @@ export default function IdentityVerificationPage() {
                     verifications.map((v) => (
                         <div key={v.id} className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200 overflow-hidden flex flex-col group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
                             <div className="p-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
-                                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shadow-sm group-hover:scale-110 transition-transform">
-                                    <User size={22} strokeWidth={1.5} />
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-rose-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <Shield size={22} strokeWidth={1.5} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold text-slate-900 text-[15px] truncate">{v.user.name || 'Anonymous User'}</p>
+                                    <p className="text-[11px] text-slate-400 font-medium truncate">{v.user.email}</p>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
                                             {v.documentType}

@@ -51,6 +51,9 @@ export class AdminRepositoryPrisma {
           email: true,
           role: true,
           accountStatus: true,
+          idVerified: true,
+          photoVerified: true,
+          trustScore: true,
           createdAt: true,
         }
       }),

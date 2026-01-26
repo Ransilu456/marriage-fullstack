@@ -6,5 +6,6 @@ export interface User {
   createdAt: string;
   accountStatus?: 'ACTIVE' | 'SUSPENDED' | 'PENDING';
   idVerified?: boolean;
+  photoVerified?: boolean;
   trustScore?: number;
 }

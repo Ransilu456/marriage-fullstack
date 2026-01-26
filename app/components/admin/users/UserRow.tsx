@@ -24,28 +24,38 @@ export default function UserRow({
 
       <td className="px-6 py-4">
         <span
-          className={`px-3 py-1 rounded-full text-xs font-bold ${
-            user.accountStatus === 'ACTIVE'
+          className={`px-3 py-1 rounded-full text-xs font-bold ${user.accountStatus === 'ACTIVE'
               ? 'bg-emerald-100 text-emerald-700'
               : user.accountStatus === 'SUSPENDED'
-              ? 'bg-red-100 text-red-700'
-              : 'bg-amber-100 text-amber-700'
-          }`}
+                ? 'bg-red-100 text-red-700'
+                : 'bg-amber-100 text-amber-700'
+            }`}
         >
           {user.accountStatus || 'PENDING'}
         </span>
       </td>
 
       <td className="px-6 py-4">
-        {user.idVerified ? (
-          <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold">
-            <ShieldCheck size={16} /> Verified
-          </span>
-        ) : (
-          <span className="flex items-center gap-1 text-amber-600 text-xs font-semibold">
-            <Shield size={16} /> Pending
-          </span>
-        )}
+        <div className="flex flex-col gap-1.5">
+          {user.idVerified ? (
+            <span className="flex items-center gap-1 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">
+              <ShieldCheck size={14} /> ID Verified
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+              <Shield size={14} /> ID Pending
+            </span>
+          )}
+          {user.photoVerified ? (
+            <span className="flex items-center gap-1 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">
+              <ShieldCheck size={14} /> Photo Verified
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+              <Shield size={14} /> Photo Pending
+            </span>
+          )}
+        </div>
       </td>
 
       <td className="px-6 py-4">

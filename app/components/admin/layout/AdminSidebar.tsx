@@ -13,7 +13,8 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  UserCircle
+  UserCircle,
+  Camera
 } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 
@@ -26,7 +27,8 @@ interface AdminSidebarProps {
 const menuItems = [
   { name: 'Overview', href: '/admin', icon: LayoutDashboard },
   { name: 'User Management', href: '/admin/users', icon: Users },
-  { name: 'Verifications', href: '/admin/profiles', icon: UserCheck },
+  { name: 'Identity Verifications', href: '/admin/identity', icon: UserCheck },
+  { name: 'Photo Verifications', href: '/admin/photos', icon: Camera },
   { name: 'Proposals', href: '/admin/proposals', icon: FileText },
   { name: 'Reports', href: '/admin/reports', icon: Shield },
   { name: 'Settings', href: '/admin/settings', icon: Settings },

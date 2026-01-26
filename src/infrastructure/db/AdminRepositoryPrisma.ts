@@ -1,5 +1,5 @@
 import { prisma } from './prismaClient';
-import { Prisma, AccountStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export class AdminRepositoryPrisma {
   async getDashboardStats() {
@@ -104,8 +104,8 @@ export class AdminRepositoryPrisma {
         skip,
         take: limit,
         include: {
-          sender: { select: { name: true } },
-          receiver: { select: { name: true } }
+          sender: { select: { name: true, email: true } },
+          receiver: { select: { name: true, email: true } }
         },
         orderBy: { createdAt: 'desc' }
       }),
@@ -367,5 +367,30 @@ export class AdminRepositoryPrisma {
     });
 
     return { success: true };
+  }
+
+  async getReports(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const [reports, total] = await Promise.all([
+      prisma.report.findMany({
+        skip,
+        take: limit,
+        include: {
+          reporter: { select: { name: true, email: true } },
+          target: { select: { name: true, email: true } }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.report.count()
+    ]);
+
+    return { reports, total, pages: Math.ceil(total / limit) };
+  }
+
+  async updateReportStatus(reportId: string, status: string) {
+    return prisma.report.update({
+      where: { id: reportId },
+      data: { status }
+    });
   }
 }

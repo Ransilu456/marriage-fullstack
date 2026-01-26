@@ -76,7 +76,7 @@ export default function MatchPage() {
         </div>
     );
 
-    const partner = matchData.userAId === session?.userId ? matchData.userB : matchData.userA;
+    const partner = matchData.userAId === (session?.user as any)?.id ? matchData.userB : matchData.userA;
 
     return (
         <div className="min-h-screen bg-slate-50 py-24 px-6 overflow-hidden relative">

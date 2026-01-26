@@ -164,6 +164,18 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                     )
                 )}
             </div>
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-50 bg-slate-50/50">
+                <button
+                    onClick={() => {
+                        router.push('/notifications');
+                        onClose();
+                    }}
+                    className="w-full text-center text-xs font-bold text-slate-500 hover:text-orange-600 transition-colors uppercase tracking-widest"
+                >
+                    View All Notifications
+                </button>
+            </div>
         </motion.div>
     );
 }

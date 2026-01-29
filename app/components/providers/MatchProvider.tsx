@@ -9,10 +9,11 @@ interface MatchData {
     partnerName: string;
     partnerImage?: string;
     proposalId?: string;
+    partnerId?: string;
 }
 
 interface MatchContextType {
-    showMatch: (data: { partnerName: string; partnerImage?: string; proposalId?: string }) => void;
+    showMatch: (data: { partnerName: string; partnerImage?: string; proposalId?: string; partnerId?: string }) => void;
 }
 
 const MatchContext = createContext<MatchContextType | undefined>(undefined);
@@ -24,7 +25,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         partnerName: '',
     });
 
-    const showMatch = (data: { partnerName: string; partnerImage?: string; proposalId?: string }) => {
+    const showMatch = (data: { partnerName: string; partnerImage?: string; proposalId?: string; partnerId?: string }) => {
         setMatchData({
             isOpen: true,
             ...data
@@ -69,6 +70,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
                 partnerName={matchData.partnerName}
                 partnerImage={matchData.partnerImage}
                 myImage={session?.user?.image || undefined}
+                partnerId={matchData.partnerId}
             />
         </MatchContext.Provider>
     );

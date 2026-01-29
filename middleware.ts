@@ -1,12 +1,24 @@
+
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 export default withAuth(
-  function middleware(req: NextRequest) {
+  function middleware(req) {
     const { pathname } = req.nextUrl;
 
-    // ✅ Allow API routes to pass without redirect
+    if (pathname === "/") {
+      if (req.nextauth.token) {
+        const hasProfile = (req.nextauth.token as any).hasProfile;
+
+        if (hasProfile) {
+          return NextResponse.redirect(new URL("/discover", req.url));
+        } else {
+          return NextResponse.redirect(new URL("/profile/create", req.url));
+        }
+      }
+      return NextResponse.next();
+    }
+
     if (pathname.startsWith("/api")) {
       return NextResponse.next();
     }
@@ -16,12 +28,14 @@ export default withAuth(
       authorized: ({ req, token }) => {
         const pathname = req.nextUrl.pathname;
 
-        // ✅ Admin pages only
+        if (pathname === "/") {
+          return true;
+        }
+
         if (pathname.startsWith("/admin")) {
           return token?.role === "ADMIN";
         }
 
-        // ✅ Other protected pages
         return !!token;
       },
     },
@@ -33,6 +47,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/profile/:path*",
     "/discover/:path*",
@@ -40,7 +55,5 @@ export const config = {
     "/proposals/:path*",
     "/family/:path*",
     "/admin/:path*",
-    // ❌ REMOVE API FROM MATCHER
-    // "/api/admin/:path*",
   ],
 };

@@ -42,10 +42,12 @@ export class SendInterestUseCase {
             throw new Error("Profile not found. Please create a profile first.");
         }
 
+        /*
         if (!senderProfile.isReadyForInteractions()) {
             const completion = senderProfile.calculateCompletion();
             throw new Error(`Your profile is only ${completion}% complete. You must reach 80% to send interests.`);
         }
+        */
 
         // 3. Check for existing Match (Chat)
         const existingMatch = await this.matchRepo.findByUsers(input.senderId, input.receiverId);
@@ -53,10 +55,14 @@ export class SendInterestUseCase {
             throw new Error("You are already matched with this user.");
         }
 
-        // 4. Check for existing Interest
+        // 4. Check for existing Interest (Bidirectional)
         const existingInterest = await this.interestRepo.findByUsers(input.senderId, input.receiverId);
         if (existingInterest) {
-            throw new Error("An interest already exists between you two.");
+            if (existingInterest.senderId === input.senderId) {
+                throw new Error("You have already sent an interest to this person. Please wait for their response.");
+            } else {
+                throw new Error("This person has already sent you an interest! Check your 'Received Interests' to accept and start a conversation.");
+            }
         }
 
         // 5. Enforce Daily Limit (Serious Intent)

@@ -31,6 +31,7 @@ enum InterestStatus {
     ACCEPTED
     REJECTED
     WITHDRAWN
+    ENGAGED
 }
 
 enum MessageType {

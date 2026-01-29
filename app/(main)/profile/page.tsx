@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Heart, Loader2, MapPin, Briefcase,
@@ -66,11 +66,30 @@ interface VerificationDoc {
 export default function ProfilePage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [profile, setProfile] = useState<ProfileData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('edit-profile');
-    const [isViewMode, setIsViewMode] = useState(false);
+
+    // Initialize based on URL
+    const tabParam = searchParams.get('tab');
+    const modeParam = searchParams.get('mode');
+
+    const [activeTab, setActiveTab] = useState(tabParam || 'edit-profile');
+    const [isViewMode, setIsViewMode] = useState(modeParam === 'view' || !tabParam);
+
+    // Update URL when state changes
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (isViewMode) {
+            params.set('mode', 'view');
+            params.delete('tab');
+        } else {
+            params.delete('mode');
+            params.set('tab', activeTab);
+        }
+        router.replace(`/profile?${params.toString()}`, { scroll: false });
+    }, [activeTab, isViewMode, router, searchParams]);
     const [showVerificationModal, setShowVerificationModal] = useState(false);
     const [bannerDismissed, setBannerDismissed] = useState(false);
     const [isSaving, setIsSaving] = useState(false);

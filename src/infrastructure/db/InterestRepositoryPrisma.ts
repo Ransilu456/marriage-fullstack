@@ -36,13 +36,13 @@ export class InterestRepositoryPrisma implements IInterestRepository {
         return found ? this.toDomain(found) : null;
     }
 
-    async findByUsers(senderId: string, receiverId: string): Promise<Interest | null> {
-        const found = await (prisma as any).interest.findUnique({
+    async findByUsers(user1Id: string, user2Id: string): Promise<Interest | null> {
+        const found = await (prisma as any).interest.findFirst({
             where: {
-                senderId_receiverId: {
-                    senderId,
-                    receiverId
-                }
+                OR: [
+                    { senderId: user1Id, receiverId: user2Id },
+                    { senderId: user2Id, receiverId: user1Id }
+                ]
             }
         });
         return found ? this.toDomain(found) : null;

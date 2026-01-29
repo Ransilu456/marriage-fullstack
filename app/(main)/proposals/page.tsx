@@ -99,7 +99,8 @@ export default function ProposalsPage() {
                     showMatch({
                         partnerName: int?.senderName || 'Your Match',
                         partnerImage: int?.senderPhoto,
-                        proposalId: interestId
+                        proposalId: interestId,
+                        partnerId: int?.senderId
                     });
                 }
                 fetchData();

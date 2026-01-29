@@ -61,6 +61,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, interest });
     } catch (error: any) {
+        console.error("Error in POST /api/interests:", error.message);
         return NextResponse.json(
             { error: error.message || 'Internal Server Error' },
             { status: 400 }

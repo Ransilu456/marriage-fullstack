@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Heart, Sparkles, MessageCircle } from 'lucide-react';
+import { Heart, Sparkles, MessageCircle, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 
 interface MatchModalProps {
@@ -11,9 +11,10 @@ interface MatchModalProps {
     partnerName: string;
     partnerImage?: string;
     myImage?: string;
+    partnerId?: string;
 }
 
-export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage }: MatchModalProps) {
+export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage, partnerId }: MatchModalProps) {
     const router = useRouter();
 
     if (!isOpen) return null;
@@ -51,9 +52,9 @@ export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage
                                     rotate: Math.random() * 360
                                 }}
                                 transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
-                                className="absolute top-1/2 left-1/2 text-saffron-400 opacity-40 text-2xl"
+                                className="absolute top-1/2 left-1/2 text-rose-400 opacity-40 text-2xl"
                             >
-                                {i % 2 === 0 ? '✨' : '💖'}
+                                {i % 2 === 0 ? '✨' : '❤️'}
                             </motion.div>
                         ))}
                     </div>
@@ -62,30 +63,32 @@ export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            className="inline-flex items-center gap-2 px-6 py-2 bg-saffron-500 rounded-full border border-saffron-400 mb-4"
+                            className="inline-flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-rose-500 to-orange-500 rounded-full shadow-lg shadow-rose-500/30 mb-4"
                         >
                             <Sparkles size={16} className="text-white" />
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-white">Divine Resonance</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-white">New Match</span>
                         </motion.div>
-                        <h2 className="text-7xl font-serif text-white font-bold tracking-tighter drop-shadow-2xl">
-                            Soul's <span className="italic text-saffron-400">Harmony</span>
+                        <h2 className="text-6xl font-serif text-white font-bold tracking-tight drop-shadow-2xl">
+                            It's a <span className="text-rose-500 italic">Match!</span>
                         </h2>
                     </div>
 
                     <div className="flex justify-center items-center gap-6 relative">
                         {/* Connecting Line */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-px bg-gradient-to-r from-transparent via-saffron-500/50 to-transparent blur-sm" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-px bg-gradient-to-r from-transparent via-rose-500/50 to-transparent blur-sm" />
 
                         <motion.div
                             initial={{ x: -60, opacity: 0, rotate: -15 }}
                             animate={{ x: 0, opacity: 1, rotate: 0 }}
                             className="relative z-10"
                         >
-                            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transform -rotate-3 relative">
+                            <div className="w-28 h-28 rounded-3xl border-4 border-white shadow-2xl overflow-hidden bg-slate-100 transform -rotate-3 relative">
                                 {myImage ? (
                                     <Image src={myImage} alt="Me" fill className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">🫵</div>
+                                    <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">
+                                        <div className="w-full h-full bg-slate-200 animate-pulse" />
+                                    </div>
                                 )}
                             </div>
                         </motion.div>
@@ -94,9 +97,9 @@ export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage
                             initial={{ scale: 0 }}
                             animate={{ scale: [0, 1.5, 1] }}
                             transition={{ delay: 0.5 }}
-                            className="relative z-20 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl"
+                            className="relative z-20 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl shadow-rose-500/20"
                         >
-                            <Heart className="text-saffron-500 fill-saffron-500 animate-pulse" size={32} />
+                            <Heart className="text-rose-500 fill-rose-500 animate-pulse" size={32} />
                         </motion.div>
 
                         <motion.div
@@ -104,35 +107,42 @@ export function MatchModal({ isOpen, onClose, partnerName, partnerImage, myImage
                             animate={{ x: 0, opacity: 1, rotate: 0 }}
                             className="relative z-10"
                         >
-                            <div className="w-32 h-32 rounded-[2.5rem] border-[6px] border-white shadow-2xl overflow-hidden bg-slate-100 transform rotate-3 relative">
+                            <div className="w-28 h-28 rounded-3xl border-4 border-white shadow-2xl overflow-hidden bg-slate-100 transform rotate-3 relative">
                                 {partnerImage ? (
                                     <Image src={partnerImage} alt={partnerName} fill className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">👤</div>
+                                    <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">
+                                        <div className="w-full h-full bg-slate-200 animate-pulse" />
+                                    </div>
                                 )}
                             </div>
                         </motion.div>
                     </div>
 
-                    <p className="text-white/80 text-xl font-light italic max-w-sm mx-auto">
-                        Your path has converged with <span className="text-saffron-400 font-bold">{partnerName}</span>. A new journey begins here.
+                    <p className="text-white/80 text-lg font-medium max-w-sm mx-auto leading-relaxed">
+                        You and <span className="text-white font-bold">{partnerName}</span> have liked each other. You can now start a conversation!
                     </p>
 
-                    <div className="flex flex-col gap-4 max-w-xs mx-auto pt-6">
+                    <div className="flex flex-col gap-3 max-w-xs mx-auto pt-4">
                         <button
                             onClick={() => {
                                 onClose();
-                                router.push('/chat');
+                                if (partnerId) {
+                                    router.push(`/chat/${partnerId}`);
+                                } else {
+                                    router.push('/messages'); // Fallback
+                                }
                             }}
-                            className="w-full py-5 bg-saffron-500 hover:bg-saffron-600 text-white font-black uppercase tracking-[0.25em] text-[11px] rounded-2xl shadow-2xl shadow-saffron-500/30 flex items-center justify-center gap-3 active:scale-95 transition-all"
+                            className="w-full py-4 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white font-bold text-sm rounded-xl shadow-xl shadow-rose-500/30 flex items-center justify-center gap-2 active:scale-95 transition-all"
                         >
-                            <MessageCircle size={18} /> Initiate Echo
+                            <MessageCircle size={18} />
+                            <span>Send Message</span>
                         </button>
                         <button
                             onClick={onClose}
-                            className="w-full py-5 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.25em] transition-all border border-white/5"
+                            className="w-full py-4 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm rounded-xl transition-all border border-white/10"
                         >
-                            Continue Seeking
+                            Keep Browsing
                         </button>
                     </div>
                 </motion.div>

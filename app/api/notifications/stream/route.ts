@@ -6,51 +6,58 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
     console.log('SSE Stream Connection Attempt');
-    const session = await getSession();
+
+    // Pass the request to getSession for better reliability in Route Handlers
+    const session = await getSession(request);
+
     if (!session?.userId) {
         console.warn('SSE Connection Rejected: No session');
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 
     console.log(`SSE Stream Connected for user: ${session.userId}`);
     const encoder = new TextEncoder();
+
     const stream = new ReadableStream({
         async start(controller) {
-            // Send initial connection message
+            // Immediate heartbeat to establish connection and prevent early timeouts
+            controller.enqueue(encoder.encode(': heartbeat\n\n'));
+
+            // Send connection confirmation
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'CONNECTED' })}\n\n`));
 
             let lastCheck = new Date();
 
-            // Minimal polling mechanism to simulate real-time push
             const interval = setInterval(async () => {
                 try {
-                    // Check for new notifications created since last check
                     const newNotifications = await prisma.notification.findMany({
                         where: {
                             userId: session.userId,
                             createdAt: { gt: lastCheck },
-                            read: false // Only push unread
+                            read: false
                         },
                         orderBy: { createdAt: 'asc' }
                     });
 
                     if (newNotifications.length > 0) {
                         lastCheck = new Date();
-                        // Push each new notification
                         for (const note of newNotifications) {
                             controller.enqueue(encoder.encode(`data: ${JSON.stringify(note)}\n\n`));
                         }
                     } else {
-                        // Keep-alive comment to prevent timeout - mandatory for some browsers/proxies
+                        // Regular keep-alive
                         controller.enqueue(encoder.encode(': keep-alive\n\n'));
                     }
                 } catch (error) {
                     console.error('SSE Error checking DB:', error);
                 }
-            }, 3000); // Check every 3 seconds
+            }, 5000); // Polling every 5 seconds for balance
 
-            // Cleanup on close
             request.signal.addEventListener('abort', () => {
+                console.log(`SSE Stream Disconnected for user: ${session.userId}`);
                 clearInterval(interval);
                 controller.close();
             });
@@ -62,7 +69,7 @@ export async function GET(request: Request) {
             'Content-Type': 'text/event-stream',
             'Cache-Control': 'no-cache, no-transform',
             'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no',
+            'X-Accel-Buffering': 'no', // Disable buffering for Nginx/Vercel
         },
     });
 }
